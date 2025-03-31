@@ -43,10 +43,7 @@ try:
     APP_PASSWORD = st.secrets["password"]
 except Exception:
     # Для локальной разработки используем пароль по умолчанию
-    APP_PASSWORD = "dental2024"
-    # Выводим предупреждение в режиме разработки
-    if os.environ.get("STREAMLIT_ENV") == "development":
-        print("Внимание: Используется пароль по умолчанию. В продакшене используйте secrets.")
+    APP_PASSWORD = ""
 
 # Функция проверки пароля
 def check_password():
@@ -55,38 +52,83 @@ def check_password():
         st.session_state.auth_status = "verified"
     else:
         st.session_state.auth_status = "incorrect"
-        st.session_state.password = ""
+        # st.session_state.password = APP_PASSWORD
 
 # Функция отображения формы входа
 def login_prompt():
     """Отображает форму для ввода пароля"""
-    st.title("🦷 Zahnarztpraxis System")
+    # Удаляем стандартный заголовок страницы
     
-    # Создаем контейнер для центрирования формы
-    login_container = st.container()
-    
-    # Создаем колонки для центрирования формы
-    col1, col2, col3 = st.columns([1, 2, 1])
-    
-    with col2:
-        st.markdown("""
-        <div style="padding: 20px; border-radius: 10px; border: 1px solid #e0e0e0; margin-top: 30px; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);">
-            <h3 style="text-align: center; margin-bottom: 20px;">Authentifizierung</h3>
-        """, unsafe_allow_html=True)
+    # Создаем контейнер с центрированной формой
+    with st.container():
+        # Создаем колонки для центрирования формы
+        col1, col2, col3 = st.columns([1, 2, 1])
         
-        with st.form("login_form"):
-            st.text_input("Passwort eingeben:", type="password", key="password")
-            submit = st.form_submit_button("Anmelden", use_container_width=True)
+        with col2:
+            # Стилизованный контейнер для формы логина
+            st.markdown("""
+            <div style="padding: 30px; border-radius: 12px; border: 1px solid #e6e6e6; 
+                        margin-top: 50px; box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1); 
+                        background-color: white;">
+                <div style="text-align: center; margin-bottom: 30px;">
+                    <h1 style="color: #2c3e50; font-size: 28px; margin-bottom: 5px;">🦷 Zahnarztpraxis</h1>
+                    <p style="color: #7f8c8d; font-size: 16px;">Bitte melden Sie sich an, um fortzufahren</p>
+                </div>
+            """, unsafe_allow_html=True)
             
-            if submit:
-                check_password()
-                st.rerun()  # Перезагрузка страницы после проверки пароля
-        
-        # Отображение ошибки при неверном пароле
-        if st.session_state.auth_status == "incorrect":
-            st.error("❌ Falsches Passwort. Bitte versuchen Sie es erneut.")
-        
-        st.markdown("</div>", unsafe_allow_html=True)
+            # Добавляем декоративную линию-разделитель
+            st.markdown("""
+            <div style="border-bottom: 1px solid #eaeaea; margin-bottom: 25px;"></div>
+            """, unsafe_allow_html=True)
+            
+            # Форма входа
+            with st.form("login_form"):
+                st.text_input(
+                    "Passwort", 
+                    type="password", 
+                    key="password",
+                    help="Geben Sie das Passwort ein, um auf das System zuzugreifen"
+                )
+                
+                # Стилизованная кнопка входа со светло-зеленым цветом
+                submit = st.form_submit_button(
+                    "Anmelden", 
+                    use_container_width=True,
+                    type="primary"
+                )
+                
+                # Применяем пользовательский стиль для кнопки
+                st.markdown("""
+                <style>
+                    .stButton button[data-testid="FormSubmitButton"] {
+                        background-color: #4CAF50 !important;
+                        color: white !important;
+                        border: none !important;
+                    }
+                    .stButton button[data-testid="FormSubmitButton"]:hover {
+                        background-color: #45a049 !important;
+                        color: white !important;
+                    }
+                </style>
+                """, unsafe_allow_html=True)
+                
+                if submit:
+                    check_password()
+                    st.rerun()  # Перезагрузка страницы после проверки пароля
+            
+            # Отображение ошибки при неверном пароле
+            if st.session_state.auth_status == "incorrect":
+                st.error("❌ Falsches Passwort. Bitte versuchen Sie es erneut.")
+            
+            # Закрывающий тег для контейнера
+            st.markdown("</div>", unsafe_allow_html=True)
+            
+            # Добавляем информацию о версии и копирайт внизу
+            st.markdown("""
+            <div style="text-align: center; margin-top: 20px; color: #95a5a6; font-size: 12px;">
+                <p>Version 1.0.0 © 2024 Dental System</p>
+            </div>
+            """, unsafe_allow_html=True)
 
 # Функция выхода из системы
 def logout():
