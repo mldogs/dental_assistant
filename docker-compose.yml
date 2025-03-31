@@ -1,0 +1,21 @@
+version: '3.8'
+
+services:
+  dental-app:
+    build: .
+    container_name: dental-app
+    ports:
+      - "8501:8501"
+    volumes:
+      - .:/app
+    env_file:
+      - .env
+    restart: unless-stopped
+    environment:
+      - PORT=8501
+      - HOST=0.0.0.0
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+      - AIRTABLE_API_KEY=${AIRTABLE_API_KEY}
+      - AIRTABLE_BASE_ID=${AIRTABLE_BASE_ID}
+      - OPENAI_MODEL=${OPENAI_MODEL:-gpt-4o}
+      - DEFAULT_LANGUAGE=${DEFAULT_LANGUAGE:-ru} 

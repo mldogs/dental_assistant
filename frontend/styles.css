@@ -1,0 +1,188 @@
+/* Глобальные стили */
+.stApp {
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+/* Стили для карточек */
+[data-testid="stVerticalBlock"] > [data-testid="stHorizontalBlock"] > [data-testid="column"] > [data-testid="stVerticalBlock"] > [data-testid="stContainer"] {
+    background-color: #f8f9fa;
+    border-radius: 10px;
+    padding: 10px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    transition: transform 0.3s, box-shadow 0.3s;
+    height: 220px;
+    margin-bottom: 20px;
+    display: flex;
+    flex-direction: column;
+}
+
+/* Эффект при наведении на карточки */
+[data-testid="stVerticalBlock"] > [data-testid="stHorizontalBlock"] > [data-testid="column"] > [data-testid="stVerticalBlock"] > [data-testid="stContainer"]:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+}
+
+/* Стили для процедур */
+.procedure-item {
+    padding: 15px;
+    background-color: #f8f9fa;
+    border-radius: 8px;
+    border-left: 4px solid #4CAF50;
+    margin-bottom: 10px;
+    transition: all 0.3s ease;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+}
+
+.procedure-item:hover {
+    background-color: #e8f5e9;
+    box-shadow: 0 3px 6px rgba(0,0,0,0.15);
+}
+
+/* Стили для кнопок */
+[data-testid="baseButton-secondary"] {
+    font-weight: bold;
+    border-radius: 5px;
+    background-color: #4CAF50;
+    color: white;
+    padding: 4px 8px;
+    transition: all 0.3s ease;
+    border: none;
+    height: 100%;
+    min-height: 36px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+[data-testid="baseButton-secondary"]:hover {
+    background-color: #45a049;
+    transform: translateY(-2px);
+    box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+}
+
+/* Стили для информационных блоков */
+[data-testid="stAlert"] {
+    border-radius: 10px;
+}
+
+/* Стили для заголовков */
+h1, h2, h3, h4 {
+    color: #2c3e50;
+}
+
+/* Стили для разделителей */
+hr {
+    margin: 20px 0;
+    border: 0;
+    height: 1px;
+    background-image: linear-gradient(to right, rgba(0, 0, 0, 0), rgba(0, 0, 0, 0.15), rgba(0, 0, 0, 0));
+}
+
+/* Стили для радиокнопок */
+.st-emotion-cache-10oheav {
+    padding: 10px;
+    border-radius: 5px;
+    margin-bottom: 5px;
+    background-color: #f8f9fa;
+}
+
+.st-emotion-cache-10oheav:hover {
+    background-color: #e2f0ff;
+}
+
+/* Стили для экспандера */
+[data-testid="stExpander"] {
+    border-radius: 8px;
+    border: 1px solid #eee;
+    margin-top: 10px;
+}
+
+/* Выбранная радиокнопка */
+[data-testid="stRadio"] > div:has(input:checked) + label {
+    font-weight: bold;
+    color: #4CAF50;
+}
+
+/* Стили для вкладок */
+[data-testid="stTabs"] {
+    margin-bottom: 20px;
+}
+
+[data-testid="stMarkdownContainer"] p {
+    line-height: 1.6;
+    margin-bottom: 0.8em;
+}
+
+/* Стили для кнопок выбора */
+.select-button {
+    background-color: #4CAF50 !important;
+    color: white !important;
+    font-weight: bold !important;
+    height: 100% !important;
+    min-height: 40px !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+}
+
+/* Стиль для карточки выбранной процедуры */
+.selected-procedure-card {
+    background-color: #f0f7fa;
+    padding: 20px;
+    border-radius: 10px;
+    border-left: 5px solid #4CAF50;
+    margin-bottom: 15px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.selected-procedure-card h3 {
+    margin-top: 0;
+    color: #2c3e50;
+    font-size: 1.5em;
+    margin-bottom: 10px;
+}
+
+.selected-procedure-card p {
+    margin: 8px 0;
+    line-height: 1.5;
+}
+
+/* Стили для категории процедур */
+.category-heading {
+    margin-bottom: 20px;
+}
+
+/* Стили для информации о процедуре */
+.procedure-name {
+    font-size: 16px;
+    font-weight: bold;
+}
+
+.procedure-description {
+    margin: 5px 0 0 0;
+    color: #666;
+    font-size: 14px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* Стили для подробной информации о процедуре */
+.procedure-details {
+    padding: 10px;
+}
+
+.procedure-details h4 {
+    margin-top: 0;
+    color: #2c3e50;
+}
+
+.procedure-details p {
+    margin-top: 10px;
+}
+
+/* Стиль для отступа между процедурами */
+.procedure-spacer {
+    margin-bottom: 10px;
+} 
