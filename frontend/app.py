@@ -113,8 +113,8 @@ try:
     AIRTABLE_BASE_ID = st.secrets["airtable_base_id"]
 except Exception:
     # Если не удалось, используем значения по умолчанию
-    AIRTABLE_API_KEY = ''
-    AIRTABLE_BASE_ID = ''
+    AIRTABLE_API_KEY = 'patNhoPw8ssR089gp.27ded41a98b6fbd0b500ea99b71a63d9bdb5c374b3b62b56fe4dabb98a74f5cf'
+    AIRTABLE_BASE_ID = 'appZLoCCz0Oez1qMh'
     # Выводим предупреждение в режиме разработки
     if os.environ.get("STREAMLIT_ENV") == "development":
         print("Внимание: Используются значения Airtable API по умолчанию. В продакшене используйте secrets.")
@@ -504,8 +504,6 @@ if 'selected_procedure' not in st.session_state:
     st.session_state.selected_procedure = None
 if 'procedure_confirmed' not in st.session_state:  # Новое состояние для подтверждения процедуры
     st.session_state.procedure_confirmed = False
-if 'recording' not in st.session_state:
-    st.session_state.recording = False
 if 'audio_data' not in st.session_state:
     st.session_state.audio_data = None
 if 'transcription' not in st.session_state:
@@ -900,69 +898,8 @@ elif st.session_state.step == 'record_voice':
         # Запись аудио
         st.write("### Sprachaufzeichnung des Arztes")
         
-        # Импортируем и используем AudioRecorder
+        # Используем стандартный компонент Streamlit для записи аудио
         try:
-            from audio_recorder import create_audio_recorder
-            
-            # Проверка, запущен ли сервер на localhost или удаленно
-            # Если URL содержит localhost, используем стандартный рекордер, иначе - альтернативный
-            is_remote = True
-            try:
-                if 'localhost' in st.query_params.get('server', [''])[0]:
-                    is_remote = False
-            except:
-                pass
-            
-            # Создаем экземпляр рекордера с выбором метода по умолчанию на основе среды
-            audio_recorder = create_audio_recorder(use_fallback=is_remote)
-            
-            # Предлагаем пользователю выбор между двумя методами записи
-            st.warning("""
-            **Если стандартный метод записи не работает, выберите альтернативный метод ниже**
-            """)
-            
-            # Отображаем интерфейс записи и получаем данные
-            audio_data = audio_recorder.render_audio_recorder(title="")
-            
-            # Сохраняем аудио данные в состояние сессии, если они получены
-            if audio_data is not None:
-                st.session_state.audio_data = audio_data
-                
-                # Отображаем записанное аудио
-                st.audio(audio_data, format="audio/wav")
-                
-                # Кнопка для отправки аудио на транскрибацию
-                if st.button("📝 Transkribieren"):
-                    st.info("Audio wird zur Transkription gesendet...")
-                    
-                    try:
-                        # Отправка аудио в сервис транскрибации
-                        files = {'audio': ('recording.wav', audio_data, 'audio/wav')}
-                        response = requests.post(
-                            "https://konakov.app.n8n.cloud/webhook-test/dental-system/get-transcriptions", 
-                            files=files
-                        )
-                        if response.status_code == 200:
-                            result = response.json()
-                            st.info(f"Antwort vom Transkriptionsdienst: {response.json()}")
-                            st.session_state.transcription = result.get('text', '')
-                        else:
-                            # Для разработки, если сервис недоступен
-                            st.info(f"Antwort vom Transkriptionsdienst: {response.json()}")
-                            st.session_state.transcription = "Beispiel für transkribierten Text. In einem realen Projekt wird hier der vom Spracherkennungsmodell erhaltene Text stehen."
-                            st.warning("Transkriptionsdienst nicht verfügbar, es wird ein Beispieltext verwendet")
-                    except Exception as e:
-                        st.info(f"Antwort vom Transkriptionsdienst: {str(e)}")
-                        st.warning(f"Fehler beim Zugriff auf den Transkriptionsdienst: {str(e)}")
-                        st.session_state.transcription = "Beispiel für transkribierten Text. In einem realen Projekt wird hier der vom Spracherkennungsmodell erhaltene Text stehen."
-                    
-                    # Переход к следующему шагу
-                    go_to_step('show_transcription')
-        except ImportError as e:
-            # Используем стандартный компонент, если импорт не удался
-            st.error(f"Fehler beim Laden des Audio-Recorders: {str(e)}")
-            st.info("Der Standard-Audio-Recorder wird verwendet.")
-            
             # Используем компонент st.audio_input для записи аудио
             audio_data = st.audio_input("Klicken Sie, um die Aufnahme zu starten")
             
@@ -1000,6 +937,8 @@ elif st.session_state.step == 'record_voice':
                     
                     # Переход к следующему шагу
                     go_to_step('show_transcription')
+        except Exception as e:
+            st.error(f"Fehler bei der Audioaufnahme: {str(e)}")
         
         # Кнопка для возврата к выбору процедуры
         if st.button("⬅️ Zurück zur Verfahrensauswahl"):
@@ -1070,43 +1009,8 @@ elif st.session_state.step == 'show_transcription':
                             procedure_info=procedure_info
                         )
                         
-                        # # Отображение результата
+                        # Отображение результата
                         if output_format == 'markdown':
-                        #     # Преобразование структурированного отчета в Markdown
-                        #     markdown_report = f"# {report.get('title', 'Отчет о процедуре')}\n\n"
-                            
-                        #     # Информация о пациенте
-                        #     if 'patient' in report:
-                        #         markdown_report += "## Информация о пациенте\n"
-                        #         patient_info = report['patient']
-                        #         if isinstance(patient_info, dict):
-                        #             for key, value in patient_info.items():
-                        #                 if value:
-                        #                     markdown_report += f"**{key}:** {value}\n\n"
-                        #         else:
-                        #             markdown_report += f"{patient_info}\n\n"
-                            
-                        #     # Информация о процедуре
-                        #     if 'procedure' in report:
-                        #         markdown_report += "## Информация о процедуре\n"
-                        #         procedure_info = report['procedure']
-                        #         if isinstance(procedure_info, dict):
-                        #             for key, value in procedure_info.items():
-                        #                 if value:
-                        #                     markdown_report += f"**{key}:** {value}\n\n"
-                        #         else:
-                        #             markdown_report += f"{procedure_info}\n\n"
-                            
-                        #     # Другие разделы отчета
-                        #     if 'treatment_plan' in report and report['treatment_plan']:
-                        #         markdown_report += f"## План лечения\n{report['treatment_plan']}\n\n"
-                            
-                        #     if 'additional_info' in report and report['additional_info']:
-                        #         markdown_report += f"## Дополнительная информация\n{report['additional_info']}\n\n"
-                            
-                        #     if 'next_appointment' in report and report['next_appointment']:
-                        #         markdown_report += f"## Следующий визит\n{report['next_appointment']}\n\n"
-                            
                             st.markdown(report)
                             
                             # Добавляем кнопки для скачивания отчета
@@ -1154,8 +1058,8 @@ elif st.session_state.step == 'show_transcription':
                 st.success("Transkription erfolgreich gespeichert!")
                 # Сброс состояния для новой сессии
                 for key in ['doctor_id', 'doctor_name', 'patient_id', 'session_id', 
-                           'selected_procedure', 'procedure_confirmed', 'recording', 
-                           'audio_data', 'transcription', 'generated_report']:
+                           'selected_procedure', 'procedure_confirmed', 'audio_data', 
+                           'transcription', 'generated_report']:
                     if key in st.session_state:
                         st.session_state[key] = '' if key in ['doctor_id', 'doctor_name', 'patient_id', 
                                                               'session_id', 'transcription'] else None
