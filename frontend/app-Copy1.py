@@ -3,7 +3,6 @@ import requests
 import json
 import os
 import base64
-import hmac
 from datetime import datetime
 import pandas as pd
 from pyairtable import Api
@@ -32,93 +31,9 @@ try:
 except Exception as e:
     st.warning(f"Не удалось загрузить файл стилей: {str(e)}")
 
-# Настройка системы аутентификации
-# Инициализация состояния аутентификации
-if 'auth_status' not in st.session_state:
-    st.session_state.auth_status = "unverified"
-
-# Установка пароля (предпочтительно использовать secrets)
-# Проверяем наличие пароля в secrets, иначе используем значение по умолчанию
-try:
-    APP_PASSWORD = st.secrets["password"]
-except Exception:
-    # Для локальной разработки используем пароль по умолчанию
-    APP_PASSWORD = "dental2024"
-    # Выводим предупреждение в режиме разработки
-    if os.environ.get("STREAMLIT_ENV") == "development":
-        print("Внимание: Используется пароль по умолчанию. В продакшене используйте secrets.")
-
-# Функция проверки пароля
-def check_password():
-    """Проверяет введенный пароль и обновляет статус аутентификации"""
-    if hmac.compare_digest(st.session_state.password, APP_PASSWORD):
-        st.session_state.auth_status = "verified"
-    else:
-        st.session_state.auth_status = "incorrect"
-        st.session_state.password = ""
-
-# Функция отображения формы входа
-def login_prompt():
-    """Отображает форму для ввода пароля"""
-    st.title("🦷 Zahnarztpraxis System")
-    
-    # Создаем контейнер для центрирования формы
-    login_container = st.container()
-    
-    # Создаем колонки для центрирования формы
-    col1, col2, col3 = st.columns([1, 2, 1])
-    
-    with col2:
-        st.markdown("""
-        <div style="padding: 20px; border-radius: 10px; border: 1px solid #e0e0e0; margin-top: 30px; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);">
-            <h3 style="text-align: center; margin-bottom: 20px;">Authentifizierung</h3>
-        """, unsafe_allow_html=True)
-        
-        with st.form("login_form"):
-            st.text_input("Passwort eingeben:", type="password", key="password")
-            submit = st.form_submit_button("Anmelden", use_container_width=True)
-            
-            if submit:
-                check_password()
-                st.rerun()  # Перезагрузка страницы после проверки пароля
-        
-        # Отображение ошибки при неверном пароле
-        if st.session_state.auth_status == "incorrect":
-            st.error("❌ Falsches Passwort. Bitte versuchen Sie es erneut.")
-        
-        st.markdown("</div>", unsafe_allow_html=True)
-
-# Функция выхода из системы
-def logout():
-    """Сбрасывает статус авторизации"""
-    st.session_state.auth_status = "unverified"
-    st.rerun()
-
-# Проверка авторизации перед отображением основного контента
-if st.session_state.auth_status != "verified":
-    login_prompt()
-    st.stop()  # Останавливаем выполнение, если пользователь не авторизован
-
-# Заголовок приложения
-col1, col2 = st.columns([5, 1])
-with col1:
-    st.title("🦷 Zahnarztpraxis System")
-with col2:
-    st.button("Abmelden", on_click=logout, key="logout_button")
-
 # Настройка Airtable
-try:
-    # Пытаемся получить API ключи из secrets
-    AIRTABLE_API_KEY = st.secrets["airtable_api_key"]
-    AIRTABLE_BASE_ID = st.secrets["airtable_base_id"]
-except Exception:
-    # Если не удалось, используем значения по умолчанию
-    AIRTABLE_API_KEY = ''
-    AIRTABLE_BASE_ID = ''
-    # Выводим предупреждение в режиме разработки
-    if os.environ.get("STREAMLIT_ENV") == "development":
-        print("Внимание: Используются значения Airtable API по умолчанию. В продакшене используйте secrets.")
-
+AIRTABLE_API_KEY = 'patNhoPw8ssR089gp.27ded41a98b6fbd0b500ea99b71a63d9bdb5c374b3b62b56fe4dabb98a74f5cf'
+AIRTABLE_BASE_ID = 'appZLoCCz0Oez1qMh'
 airtable = Api(AIRTABLE_API_KEY)
 
 # Функции для работы с Airtable
@@ -563,6 +478,9 @@ def go_to_step(step):
 def toggle_new_patient_mode():
     st.session_state.new_patient_mode = not st.session_state.new_patient_mode
     st.rerun()
+
+# Заголовок приложения
+st.title("🦷 Zahnarztpraxis System")
 
 # Шаг 1: Ввод данных врача и пациента
 if st.session_state.step == 'input_data':

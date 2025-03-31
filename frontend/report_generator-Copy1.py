@@ -5,7 +5,6 @@ from pathlib import Path
 import json
 import openai
 from pydantic import BaseModel
-import streamlit as st
 
 
 
@@ -24,14 +23,8 @@ class AirtableClient:
         """
         from pyairtable import Api
         
-        # Попытка получить ключи из Streamlit secrets
-        try:
-            self.api_key = api_key or st.secrets["airtable_api_key"] 
-            self.base_id = base_id or st.secrets["airtable_base_id"]
-        except Exception:
-            # Если не удалось получить из Streamlit secrets, используем переменные окружения
-            self.api_key = api_key or os.environ.get("AIRTABLE_API_KEY")
-            self.base_id = base_id or os.environ.get("AIRTABLE_BASE_ID")
+        self.api_key = api_key or os.environ.get("AIRTABLE_API_KEY")
+        self.base_id = base_id or os.environ.get("AIRTABLE_BASE_ID", "appZLoCCz0Oez1qMh")
         
         if self.api_key:
             self.api = Api(self.api_key)
@@ -163,15 +156,10 @@ class ReportAnalyzer:
             api_key: API ключ OpenAI (опционально, по умолчанию из переменных окружения)
             model: Модель OpenAI (опционально, по умолчанию из переменных окружения или gpt-4o)
         """
-        # Инициализация API ключа (сначала проверяем Streamlit secrets, затем аргументы, затем переменные окружения)
-        try:
-            self.api_key = api_key or st.secrets["openai_api_key"]
-        except Exception:
-            # Если не удалось получить из Streamlit secrets, используем переданный ключ или переменную окружения
-            self.api_key = api_key or os.environ.get("OPENAI_API_KEY")
-            
+        # Инициализация API ключа
+        self.api_key = api_key or os.environ.get("OPENAI_API_KEY", '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')
         if not self.api_key:
-            raise ValueError("API ключ OpenAI не указан и не найден в Streamlit secrets или переменных окружения")
+            raise ValueError("API ключ OpenAI не указан и не найден в переменных окружения")
             
         # Используем тестовый режим, если ключ начинается с "sk-test"
         self.test_mode = self.api_key.startswith("sk-test")
@@ -545,19 +533,15 @@ def generate_dental_report(
     Returns:
         Структурированный отчет в виде словаря
     """
-    # Получаем API ключ OpenAI из Streamlit secrets или переменных окружения
-    try:
-        api_key = st.secrets["openai_api_key"] or os.environ.get("OPENAI_API_KEY")
-    except Exception:
-        # Если не удалось получить из Streamlit secrets, используем только переменные окружения
-        api_key = os.environ.get("OPENAI_API_KEY")
+    # Получаем API ключ OpenAI из переменных окружения
+    api_key = os.environ.get("OPENAI_API_KEY", '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')
     
     if not api_key:
         # Если API ключ не найден, возвращаем сообщение об ошибке
-        logging.warning("API ключ OpenAI не найден в Streamlit secrets или переменных окружения")
+        logging.warning("API ключ OpenAI не указан в переменных окружения")
         return {
             "title": "Ошибка генерации отчета",
-            "error": "API ключ OpenAI не найден в Streamlit secrets или переменных окружения",
+            "error": "API ключ OpenAI не указан в переменных окружения",
             "patient": {},
             "procedure": {
                 "name": procedure or procedure_name or "",
@@ -593,4 +577,4 @@ def generate_dental_report(
                 "category": category or ""
             },
             "treatment_plan": f"Произошла ошибка при генерации отчета: {str(e)}"
-        }  
+        } 
