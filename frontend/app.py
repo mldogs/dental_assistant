@@ -1208,6 +1208,9 @@ with st.expander("Debug-Informationen"):
             if result["success"]:
                 st.json(result["structure"])
             else:
-                st.error(f"Fehler beim Abrufen der Tabellenstruktur {table_name}: {result['error']}") 
+                st.error(f"Fehler beim Abrufen der Tabellenstruktur {table_name}: {result['error']}")
+
+
+# end
                 
                 
