@@ -960,7 +960,7 @@ elif st.session_state.step == 'record_voice':
                         # Отправка аудио в сервис транскрибации
                         files = {'audio': ('recording.wav', audio_data, 'audio/wav')}
                         response = requests.post(
-                            "https://konakov.app.n8n.cloud/webhook-test/dental-system/get-transcriptions", 
+                            "https://konakov.app.n8n.cloud/webhook/dental-system/get-transcriptions", 
                             files=files
                         )
                         if response.status_code == 200:
