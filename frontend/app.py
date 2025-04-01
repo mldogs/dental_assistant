@@ -4,6 +4,8 @@ import json
 import os
 import base64
 import hmac
+import openai
+import tempfile
 from datetime import datetime
 import pandas as pd
 from pyairtable import Api
@@ -153,15 +155,69 @@ try:
     # Пытаемся получить API ключи из secrets
     AIRTABLE_API_KEY = st.secrets["airtable_api_key"]
     AIRTABLE_BASE_ID = st.secrets["airtable_base_id"]
+    # Пытаемся получить ключ OpenAI из secrets
+    OPENAI_API_KEY = st.secrets["openai_api_key"]
 except Exception:
-    # Если не удалось, используем значения по умолчанию
-    AIRTABLE_API_KEY = 'patNhoPw8ssR089gp.27ded41a98b6fbd0b500ea99b71a63d9bdb5c374b3b62b56fe4dabb98a74f5cf'
-    AIRTABLE_BASE_ID = 'appZLoCCz0Oez1qMh'
     # Выводим предупреждение в режиме разработки
     if os.environ.get("STREAMLIT_ENV") == "development":
-        print("Внимание: Используются значения Airtable API по умолчанию. В продакшене используйте secrets.")
+        print("Внимание: Используются значения API по умолчанию. В продакшене используйте secrets.")
 
+# Инициализация Airtable API
 airtable = Api(AIRTABLE_API_KEY)
+
+# Инициализация OpenAI API клиента
+openai_client = None
+if OPENAI_API_KEY:
+    try:
+        openai_client = openai.OpenAI(api_key=OPENAI_API_KEY)
+    except Exception as e:
+        print(f"Ошибка при инициализации OpenAI клиента: {str(e)}")
+
+# Функция для транскрипции аудио через OpenAI API
+def transcribe_audio_with_openai(audio_data):
+    """
+    Транскрибирует аудио данные используя OpenAI Whisper API
+    
+    Args:
+        audio_data: бинарные данные аудио файла
+        
+    Returns:
+        Текст транскрипции или сообщение об ошибке
+    """
+    # Проверяем наличие API ключа и клиента
+    if not OPENAI_API_KEY:
+        return "Ошибка: OpenAI API ключ не найден. Проверьте настройки secrets."
+    
+    if not openai_client:
+        return "Ошибка: OpenAI клиент не инициализирован."
+    
+    try:
+        # Создаем временный файл для сохранения аудио
+        with tempfile.NamedTemporaryFile(suffix=".wav", delete=True) as temp_audio:
+            # Записываем данные во временный файл
+            temp_audio.write(audio_data)
+            temp_audio.flush()
+            
+            # Открываем файл для чтения
+            with open(temp_audio.name, "rb") as audio_file:
+                # Отправляем запрос на транскрипцию
+                # transcription = openai_client.audio.transcriptions.create(
+                #     model="whisper-1",
+                #     file=audio_file,
+                #     language="de"  # Указываем немецкий язык
+                # )
+                transcription = openai_client.audio.transcriptions.create(
+                    model="gpt-4o-transcribe", 
+                    file=audio_file, 
+                    response_format="text"
+                )
+            
+            # Возвращаем текст транскрипции
+            return transcription.text
+    
+    except Exception as e:
+        # Возвращаем сообщение об ошибке
+        return f"Ошибка при транскрибации: {str(e)}"
 
 # Функции для работы с Airtable
 def get_doctors():
@@ -956,26 +1012,25 @@ elif st.session_state.step == 'record_voice':
                 if st.button("📝 Transkribieren"):
                     st.info("Audio wird zur Transkription gesendet...")
                     
-                    try:
-                        # Отправка аудио в сервис транскрибации
-                        files = {'audio': ('recording.wav', audio_data, 'audio/wav')}
-                        response = requests.post(
-                            "https://konakov.app.n8n.cloud/webhook/dental-system/get-transcriptions", 
-                            files=files
-                        )
-                        if response.status_code == 200:
-                            result = response.json()
-                            st.info(f"Antwort vom Transkriptionsdienst: {response.json()}")
-                            st.session_state.transcription = result.get('text', '')
+                    with st.spinner("Transkription läuft..."):
+                        # Используем OpenAI API для транскрипции
+                        if not openai_client:
+                            st.error("OpenAI API nicht konfiguriert. Bitte in den Einstellungen konfigurieren.")
+                            st.session_state.transcription = "OpenAI API nicht konfiguriert. Beispieltext wird verwendet."
                         else:
-                            # Для разработки, если сервис недоступен
-                            st.info(f"Antwort vom Transkriptionsdienst: {response.json()}")
-                            st.session_state.transcription = "Beispiel für transkribierten Text. In einem realen Projekt wird hier der vom Spracherkennungsmodell erhaltene Text stehen."
-                            st.warning("Transkriptionsdienst nicht verfügbar, es wird ein Beispieltext verwendet")
-                    except Exception as e:
-                        st.info(f"Antwort vom Transkriptionsdienst: {str(e)}")
-                        st.warning(f"Fehler beim Zugriff auf den Transkriptionsdienst: {str(e)}")
-                        st.session_state.transcription = "Beispiel für transkribierten Text. In einem realen Projekt wird hier der vom Spracherkennungsmodell erhaltene Text stehen."
+                            try:
+                                # Транскрибируем аудио через OpenAI API
+                                transcription_result = transcribe_audio_with_openai(audio_data)
+                                
+                                if transcription_result.startswith("Ошибка:"):
+                                    st.error(transcription_result)
+                                    st.session_state.transcription = "Beispiel für transkribierten Text. In einem realen Projekt wird hier der vom Spracherkennungsmodell erhaltene Text stehen."
+                                else:
+                                    st.success("Transkription erfolgreich!")
+                                    st.session_state.transcription = transcription_result
+                            except Exception as e:
+                                st.error(f"Fehler bei der Transkription: {str(e)}")
+                                st.session_state.transcription = "Beispiel für transkribierten Text. In einem realen Projekt wird hier der vom Spracherkennungsmodell erhaltene Text stehen."
                     
                     # Переход к следующему шагу
                     go_to_step('show_transcription')
@@ -1124,9 +1179,19 @@ with st.expander("Debug-Informationen"):
         "transcription_length": len(st.session_state.transcription) if st.session_state.transcription else 0,
         "new_patient_mode": st.session_state.new_patient_mode,
         "new_patient_pending": st.session_state.new_patient_pending,
-        "custom_patient_code": st.session_state.custom_patient_code
+        "custom_patient_code": st.session_state.custom_patient_code,
+        "openai_api_configured": openai_client is not None
     }
     st.json(debug_info)
+    
+    # Статус API ключей
+    st.write("### API Status")
+    api_status = {
+        "airtable_api": bool(AIRTABLE_API_KEY),
+        "openai_api": bool(OPENAI_API_KEY),
+        "openai_client_initialized": openai_client is not None
+    }
+    st.json(api_status)
     
     # Отображение структуры таблиц
     st.write("### Airtable-Tabelleninformationen")
@@ -1144,4 +1209,5 @@ with st.expander("Debug-Informationen"):
                 st.json(result["structure"])
             else:
                 st.error(f"Fehler beim Abrufen der Tabellenstruktur {table_name}: {result['error']}") 
+                
                 
