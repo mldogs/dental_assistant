@@ -191,9 +191,10 @@ def transcribe_audio_with_openai(audio_data):
             file=audio_data, 
             response_format="text"
         )
+        print(transcription)
         
         # Возвращаем текст транскрипции
-        return transcription.text
+        return transcription
     
     except Exception as e:
         # Возвращаем сообщение об ошибке
