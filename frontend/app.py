@@ -157,6 +157,7 @@ try:
     AIRTABLE_BASE_ID = st.secrets["airtable_base_id"]
     # Пытаемся получить ключ OpenAI из secrets
     OPENAI_API_KEY = st.secrets["openai_api_key"]
+    openai_client = openai.OpenAI(api_key=OPENAI_API_KEY)
 except Exception:
     # Выводим предупреждение в режиме разработки
     if os.environ.get("STREAMLIT_ENV") == "development":
@@ -165,13 +166,6 @@ except Exception:
 # Инициализация Airtable API
 airtable = Api(AIRTABLE_API_KEY)
 
-# Инициализация OpenAI API клиента
-openai_client = None
-if OPENAI_API_KEY:
-    try:
-        openai_client = openai.OpenAI(api_key=OPENAI_API_KEY)
-    except Exception as e:
-        print(f"Ошибка при инициализации OpenAI клиента: {str(e)}")
 
 # Функция для транскрипции аудио через OpenAI API
 def transcribe_audio_with_openai(audio_data):
@@ -192,28 +186,14 @@ def transcribe_audio_with_openai(audio_data):
         return "Ошибка: OpenAI клиент не инициализирован."
     
     try:
-        # Создаем временный файл для сохранения аудио
-        with tempfile.NamedTemporaryFile(suffix=".wav", delete=True) as temp_audio:
-            # Записываем данные во временный файл
-            temp_audio.write(audio_data)
-            temp_audio.flush()
-            
-            # Открываем файл для чтения
-            with open(temp_audio.name, "rb") as audio_file:
-                # Отправляем запрос на транскрипцию
-                # transcription = openai_client.audio.transcriptions.create(
-                #     model="whisper-1",
-                #     file=audio_file,
-                #     language="de"  # Указываем немецкий язык
-                # )
-                transcription = openai_client.audio.transcriptions.create(
-                    model="gpt-4o-transcribe", 
-                    file=audio_file, 
-                    response_format="text"
-                )
-            
-            # Возвращаем текст транскрипции
-            return transcription.text
+        transcription = openai_client.audio.transcriptions.create(
+            model="gpt-4o-transcribe", 
+            file=audio_data, 
+            response_format="text"
+        )
+        
+        # Возвращаем текст транскрипции
+        return transcription.text
     
     except Exception as e:
         # Возвращаем сообщение об ошибке
