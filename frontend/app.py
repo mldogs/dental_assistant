@@ -184,12 +184,34 @@ def transcribe_audio_with_openai(audio_data):
     
     if not openai_client:
         return "Ошибка: OpenAI клиент не инициализирован."
+
+    asr_prompt = """
+    You are an expert dental transcriptionist. Your task is to transcribe audio from a dental office accurately and precisely. 
+
+    The audio recording likely contains:
+    - A conversation between a dentist and a patient or between dental professionals
+    - Dental terminology and procedures
+    - Documentation of dental procedures, diagnoses, or treatment plans
+    - Possibly numbers referring to specific teeth using the FDI World Dental Federation notation system
+    - Mentions of dental materials, instruments, or medications
+
+    Please transcribe the audio accurately, preserving all dental terminology, teeth numbers, and specific procedural details. Pay particular attention to:
+    1. Dental diagnoses and conditions
+    2. Names of specific procedures being performed
+    3. Materials being used
+    4. Tooth numbers and locations
+    5. Patient symptoms or complaints
+    6. Treatment recommendations
+
+    If the speech is in German, keep dental terms in their precise German medical form.
+    """
     
     try:
         transcription = openai_client.audio.transcriptions.create(
             model="gpt-4o-transcribe", 
             file=audio_data, 
-            response_format="text"
+            response_format="text",
+            prompt=asr_prompt
         )
         print(transcription)
         
