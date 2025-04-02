@@ -282,7 +282,7 @@ class ReportAnalyzer:
         if not template_dir.exists() or not template_dir.is_dir():
             self.logger.warning(f"Директория категории не найдена: {template_dir}")
             current_file_dir = Path(os.path.dirname(os.path.abspath(__file__)))
-            self.logger.warning(f"Директория report_generator: {template_dir}")
+            self.logger.warning(f"Директория report_generator: {current_file_dir}")
         
         # Если файл существует, загружаем его
         if template_path.exists() and template_path.is_file():
