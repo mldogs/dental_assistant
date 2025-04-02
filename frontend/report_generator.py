@@ -193,7 +193,7 @@ class ReportAnalyzer:
         # Находим абсолютный путь к директории, в которой находится файл report_generator.py
         current_file_dir = Path(os.path.dirname(os.path.abspath(__file__)))
         # Определяем путь к директории prompts относительно расположения файла
-        self.prompts_dir = current_file_dir.parent.parent / "prompts"
+        self.prompts_dir = current_file_dir.parent / "prompts"
         self.logger.info(f"Директория с файлом: {current_file_dir}")
         self.logger.info(f"Директория с промптами: {self.prompts_dir}")
         
