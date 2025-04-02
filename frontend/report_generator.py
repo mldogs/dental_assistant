@@ -260,8 +260,6 @@ class ReportAnalyzer:
         Returns:
             Содержимое файла промпта
         """
-        # Всегда используем немецкий язык
-        language = "de"
         
         # Получаем директорию с промптами для категории
         category_dir = self.CATEGORY_DIR_MAP.get(category, self.CATEGORY_DIR_MAP["default"])
@@ -283,6 +281,8 @@ class ReportAnalyzer:
         template_dir = self.prompts_dir / language / category_dir
         if not template_dir.exists() or not template_dir.is_dir():
             self.logger.warning(f"Директория категории не найдена: {template_dir}")
+            current_file_dir = Path(os.path.dirname(os.path.abspath(__file__)))
+            self.logger.warning(f"Директория report_generator: {template_dir}")
         
         # Если файл существует, загружаем его
         if template_path.exists() and template_path.is_file():
