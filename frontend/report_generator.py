@@ -26,12 +26,12 @@ class AirtableClient:
         
         # Попытка получить ключи из Streamlit secrets
         try:
-            self.api_key = api_key or st.secrets["airtable_api_key"] 
-            self.base_id = base_id or st.secrets["airtable_base_id"]
+            self.api_key = api_key or st.secrets["airtable_api_key"] or os.environ.get("AIRTABLE_API_KEY")
+            self.base_id = base_id or st.secrets["airtable_base_id"] or os.environ.get("AIRTABLE_BASE_ID", "appZLoCCz0Oez1qMh")
         except Exception:
             # Если не удалось получить из Streamlit secrets, используем переменные окружения
             self.api_key = api_key or os.environ.get("AIRTABLE_API_KEY")
-            self.base_id = base_id or os.environ.get("AIRTABLE_BASE_ID")
+            self.base_id = base_id or os.environ.get("AIRTABLE_BASE_ID", "appZLoCCz0Oez1qMh")
         
         if self.api_key:
             self.api = Api(self.api_key)
@@ -165,7 +165,7 @@ class ReportAnalyzer:
         """
         # Инициализация API ключа (сначала проверяем Streamlit secrets, затем аргументы, затем переменные окружения)
         try:
-            self.api_key = api_key or st.secrets["openai_api_key"]
+            self.api_key = api_key or st.secrets["openai_api_key"] or os.environ.get("OPENAI_API_KEY")
         except Exception:
             # Если не удалось получить из Streamlit secrets, используем переданный ключ или переменную окружения
             self.api_key = api_key or os.environ.get("OPENAI_API_KEY")
@@ -202,58 +202,61 @@ class ReportAnalyzer:
     
     def _preload_prompt_templates(self):
         """
-        Предварительно загружает шаблоны промптов в кэш для обоих языков.
+        Предварительно загружает шаблоны промптов в кэш только для немецкого языка.
         """
-        languages = ["ru", "de"]
+        # Используем только немецкий язык
+        language = "de"
+        lang_dir = self.prompts_dir / language
         
-        for language in languages:
-            lang_dir = self.prompts_dir / language
-            
-            if not lang_dir.exists() or not lang_dir.is_dir():
-                self.logger.warning(f"Директория с промптами для языка {language} не найдена: {lang_dir}")
+        if not lang_dir.exists() or not lang_dir.is_dir():
+            self.logger.warning(f"Директория с промптами для немецкого языка не найдена: {lang_dir}")
+            return
+                
+        # Обходим все поддиректории категорий
+        for category_dir in lang_dir.iterdir():
+            if not category_dir.is_dir():
                 continue
                 
-            # Обходим все поддиректории категорий
-            for category_dir in lang_dir.iterdir():
-                if not category_dir.is_dir():
-                    continue
-                    
-                category_name = category_dir.name
-                
-                # Ищем файл template.md в директории категории
-                template_path = category_dir / "template.md"
-                
-                if template_path.exists() and template_path.is_file():
-                    try:
-                        with open(template_path, "r", encoding="utf-8") as f:
-                            template_content = f.read()
-                            cache_key = f"{language}_{category_name}"
-                            self.prompt_cache[cache_key] = template_content
-                            self.logger.debug(f"Предзагружен шаблон для {language}/{category_name}")
-                    except Exception as e:
-                        self.logger.error(f"Ошибка при загрузке шаблона {template_path}: {str(e)}")
+            category_name = category_dir.name
+            
+            # Ищем файл template.md в директории категории
+            template_path = category_dir / "template.md"
+            
+            if template_path.exists() and template_path.is_file():
+                try:
+                    with open(template_path, "r", encoding="utf-8") as f:
+                        template_content = f.read()
+                        cache_key = category_name  # Убираем префикс языка, т.к. используем только немецкий
+                        self.prompt_cache[cache_key] = template_content
+                        self.logger.debug(f"Предзагружен шаблон для категории {category_name}")
+                except Exception as e:
+                    self.logger.error(f"Ошибка при загрузке шаблона {template_path}: {str(e)}")
         
         # Записываем список доступных шаблонов в лог
         self.logger.info(f"Предзагружено {len(self.prompt_cache)} шаблонов промптов:")
         for key in sorted(self.prompt_cache.keys()):
             self.logger.debug(f"  - {key}")
     
-    def load_prompt(self, category: str, language: str) -> str:
+    def load_prompt(self, category: str, language: str = "de") -> str:
         """
-        Загружает шаблон промпта для указанной категории и языка.
+        Загружает шаблон промпта для указанной категории.
+        Параметр language игнорируется, всегда используется немецкий.
         
         Args:
             category: Категория стоматологической процедуры
-            language: Язык (ru или de)
+            language: Параметр сохранен для обратной совместимости (игнорируется)
             
         Returns:
             Содержимое файла промпта
         """
+        # Всегда используем немецкий язык
+        language = "de"
+        
         # Получаем директорию с промптами для категории
         category_dir = self.CATEGORY_DIR_MAP.get(category, self.CATEGORY_DIR_MAP["default"])
         
-        # Кэш-ключ для шаблона
-        cache_key = f"{language}_{category_dir}"
+        # Кэш-ключ для шаблона (без префикса языка)
+        cache_key = category_dir
         
         # Проверяем, загружен ли уже этот шаблон
         if cache_key in self.prompt_cache:
@@ -278,79 +281,52 @@ class ReportAnalyzer:
                 self.logger.error(f"Ошибка при чтении файла шаблона {template_path}: {str(e)}")
                 # Возвращаем динамический шаблон вместо вызова исключения
                 self.logger.info("Возвращаем динамический шаблон из-за ошибки чтения файла")
-                template_content = self._get_dynamic_template(language)
+                template_content = self._get_dynamic_template()
                 self.prompt_cache[cache_key] = template_content
                 return template_content
         else:
             # Если шаблон не найден, возвращаем динамический шаблон
             self.logger.warning(f"Шаблон для категории '{category}' (директория '{category_dir}') не найден, используем динамический шаблон")
-            template_content = self._get_dynamic_template(language)
+            template_content = self._get_dynamic_template()
             self.prompt_cache[cache_key] = template_content
             return template_content
     
-    def _get_dynamic_template(self, language: str) -> str:
+    def _get_dynamic_template(self, language: str = "de") -> str:
         """
-        Возвращает динамический шаблон промпта для указанного языка.
+        Возвращает динамический шаблон промпта на немецком языке.
+        Параметр language игнорируется.
         
         Args:
-            language: Язык (ru или de)
+            language: Параметр сохранен для обратной совместимости (игнорируется)
             
         Returns:
-            Шаблон промпта
+            Шаблон промпта на немецком языке
         """
-        if language == "ru":
-            return """
-            Задача для Стоматолога-эксперта
+        return """
+        Aufgabe für den Zahnarzt-Experten
 
-            Вам нужно создать структурированный медицинский отчет на основе транскрипции речи врача.
+        Sie müssen einen strukturierten medizinischen Bericht auf der Grundlage der Transkription der Rede des Arztes erstellen.
 
-            Транскрипция:
-            {{transcription}}
+        Transkription:
+        {{transcription}}
 
-            Процедура: {{procedure_name}}
-            {{procedure_description}}
+        Verfahren: {{procedure_name}}
+        {{procedure_description}}
 
-            Ваша задача - тщательно проанализировать транскрипцию и создать структурированный отчет о стоматологической процедуре. Используйте международную систему нумерации зубов (FDI).
+        Ihre Aufgabe ist es, die Transkription sorgfältig zu analysieren und einen strukturierten Bericht über das zahnärztliche Verfahren zu erstellen. Verwenden Sie das internationale Zahnzahlungssystem (FDI).
 
-            Отчет должен включать:
-            1. Заголовок (название процедуры)
-            2. Жалобы пациента и анамнез
-            3. Результаты осмотра
-            4. Использованные материалы
-            5. Описание процедуры
-            6. План лечения и рекомендации
-            7. Дополнительная информация (если есть)
-            8. Следующий визит (если указано)
+        Der Bericht sollte enthalten:
+        1. Überschrift (Name des Verfahrens)
+        2. Beschwerden des Patienten und Anamnese
+        3. Untersuchungsergebnisse
+        4. Verwendete Materialien
+        5. Beschreibung des Verfahrens
+        6. Behandlungsplan und Empfehlungen
+        7. Zusätzliche Informationen (falls vorhanden)
+        8. Nächster Besuch (falls angegeben)
 
-            Включите все клинически значимые детали из транскрипции. Используйте профессиональную медицинскую терминологию, но сохраняйте ясность изложения.
-            """
-        else:
-            # Для немецкого языка
-            return """
-            Aufgabe für den Zahnarzt-Experten
-
-            Sie müssen einen strukturierten medizinischen Bericht auf der Grundlage der Transkription der Rede des Arztes erstellen.
-
-            Transkription:
-            {{transcription}}
-
-            Verfahren: {{procedure_name}}
-            {{procedure_description}}
-
-            Ihre Aufgabe ist es, die Transkription sorgfältig zu analysieren und einen strukturierten Bericht über das zahnärztliche Verfahren zu erstellen. Verwenden Sie das internationale Zahnzahlungssystem (FDI).
-
-            Der Bericht sollte enthalten:
-            1. Überschrift (Name des Verfahrens)
-            2. Beschwerden des Patienten und Anamnese
-            3. Untersuchungsergebnisse
-            4. Verwendete Materialien
-            5. Beschreibung des Verfahrens
-            6. Behandlungsplan und Empfehlungen
-            7. Zusätzliche Informationen (falls vorhanden)
-            8. Nächster Besuch (falls angegeben)
-
-            Nehmen Sie alle klinisch relevanten Details aus der Transkription auf. Verwenden Sie professionelle medizinische Terminologie, aber bewahren Sie die Klarheit der Darstellung.
-            """
+        Nehmen Sie alle klinisch relevanten Details aus der Transkription auf. Verwenden Sie professionelle medizinische Terminologie, aber bewahren Sie die Klarheit der Darstellung.
+        """
 
     def call_api(self, prompt: str, output_model=None):
         """
@@ -427,7 +403,7 @@ class ReportAnalyzer:
     def analyze(
         self,
         transcription: str,
-        language: str = "ru",
+        language: str = "de",  # Параметр сохранен для обратной совместимости
         category: str = None,
         procedure: str = None,
         procedure_id: Optional[str] = None,
@@ -439,7 +415,7 @@ class ReportAnalyzer:
         
         Args:
             transcription: Текст транскрипции
-            language: Язык отчета (ru/de)
+            language: Параметр сохранен для обратной совместимости, но всегда используется немецкий язык
             category: Категория процедуры для шаблона промпта
             procedure: Название процедуры для шаблона промпта (не используется для поиска промпта, только для информации)
             procedure_id: ID процедуры в Airtable
@@ -449,6 +425,9 @@ class ReportAnalyzer:
         Returns:
             Структурированный отчет
         """
+        # Игнорируем переданный язык, всегда используем немецкий
+        language = "de"
+        
         # Получаем информацию о процедуре из Airtable
         additional_info = {}
         
@@ -493,7 +472,7 @@ class ReportAnalyzer:
                 category = clean_category
         
         # Загружаем шаблон промпта только на основе категории
-        prompt_template = self.load_prompt(category, language)
+        prompt_template = self.load_prompt(category)
         
         # Заполняем переменные в шаблоне
         prompt = prompt_template.replace("{{transcription}}", transcription)
@@ -523,7 +502,7 @@ class ReportAnalyzer:
 
 def generate_dental_report(
     transcription: str,
-    language: str = "ru",
+    language: str = "de",  # Параметр оставлен для обратной совместимости
     category: str = None,
     procedure: str = None,
     procedure_id: str = None,
@@ -535,7 +514,7 @@ def generate_dental_report(
     
     Args:
         transcription: Текст транскрипции
-        language: Язык отчета (ru/de)
+        language: Параметр сохранен для обратной совместимости, отчет всегда генерируется на немецком языке
         category: Категория процедуры для шаблона промпта
         procedure: Название процедуры для шаблона промпта
         procedure_id: ID процедуры в Airtable
@@ -556,24 +535,24 @@ def generate_dental_report(
         # Если API ключ не найден, возвращаем сообщение об ошибке
         logging.warning("API ключ OpenAI не найден в Streamlit secrets или переменных окружения")
         return {
-            "title": "Ошибка генерации отчета",
-            "error": "API ключ OpenAI не найден в Streamlit secrets или переменных окружения",
+            "title": "Fehler bei der Berichtserstellung",
+            "error": "OpenAI API-Schlüssel wurde nicht in Streamlit-Secrets oder Umgebungsvariablen gefunden",
             "patient": {},
             "procedure": {
                 "name": procedure or procedure_name or "",
                 "category": category or ""
             },
-            "treatment_plan": "Не удалось сгенерировать отчет: отсутствует API ключ OpenAI"
+            "treatment_plan": "Bericht konnte nicht erstellt werden: OpenAI API-Schlüssel fehlt"
         }
     
     # Создаем экземпляр ReportAnalyzer
     analyzer = ReportAnalyzer(api_key=api_key)
     
-    # Анализируем транскрипцию и генерируем отчет
+    # Анализируем транскрипцию и генерируем отчет - всегда используем немецкий язык
     try:
         result = analyzer.analyze(
             transcription=transcription,
-            language=language,
+            language="de",  # Всегда используем немецкий язык
             category=category,
             procedure=procedure,
             procedure_id=procedure_id,
@@ -585,12 +564,12 @@ def generate_dental_report(
     except Exception as e:
         logging.error(f"Ошибка при генерации отчета: {str(e)}")
         return {
-            "title": "Ошибка генерации отчета",
+            "title": "Fehler bei der Berichtserstellung",
             "error": str(e),
             "patient": {},
             "procedure": {
                 "name": procedure or procedure_name or "",
                 "category": category or ""
             },
-            "treatment_plan": f"Произошла ошибка при генерации отчета: {str(e)}"
-        }  
+            "treatment_plan": f"Bei der Erstellung des Berichts ist ein Fehler aufgetreten: {str(e)}"
+        } 

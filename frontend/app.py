@@ -1045,18 +1045,6 @@ elif st.session_state.step == 'show_transcription':
     
     # Генератор отчетов
     with st.expander("Bericht generieren", expanded=True):
-        language_options = {
-            'auto': 'Automatisch',
-            'ru': 'Russisch',
-            'de': 'Deutsch'
-        }
-        
-        language = st.selectbox(
-            "Sprache des Berichts",
-            options=list(language_options.keys()),
-            format_func=lambda x: language_options.get(x, x)
-        )
-
         output_format = st.selectbox(
             "Ausgabeformat",
             options=['markdown', 'json'],
@@ -1077,10 +1065,10 @@ elif st.session_state.step == 'show_transcription':
                             "description": st.session_state.selected_procedure.get('description', '')
                         }
                         
-                        # Генерация отчета
+                        # Генерация отчета только на немецком языке
                         report = generate_dental_report(
                             transcription=transcription,
-                            language='auto' if language == 'auto' else language,
+                            language='de',  # Всегда используем немецкий язык
                             procedure_id=procedure_info['id'],
                             category=procedure_info['category'],
                             procedure=procedure_info['name'],
@@ -1092,23 +1080,23 @@ elif st.session_state.step == 'show_transcription':
                             st.markdown(report)
                             
                             # Добавляем кнопки для скачивания отчета
-                            st.markdown("### Скачать отчет")
+                            st.markdown("### Bericht herunterladen")
                             
                             # Кнопка для скачивания в формате Markdown
-                            md_filename = f"report_{datetime.now().strftime('%Y%m%d_%H%M%S')}.md"
-                            st.markdown(create_download_button(report, "Скачать как Markdown", md_filename), unsafe_allow_html=True)
+                            md_filename = f"bericht_{datetime.now().strftime('%Y%m%d_%H%M%S')}.md"
+                            st.markdown(create_download_button(report, "Als Markdown herunterladen", md_filename), unsafe_allow_html=True)
                             
                             # Кнопка для скачивания в формате JSON
-                            json_filename = f"report_{datetime.now().strftime('%Y%m%d_%H%M%S')}.json"
+                            json_filename = f"bericht_{datetime.now().strftime('%Y%m%d_%H%M%S')}.json"
                             st.markdown(create_download_button(json.dumps(report, ensure_ascii=False, indent=2), 
-                                                              "Скачать как JSON", json_filename), unsafe_allow_html=True)
+                                                              "Als JSON herunterladen", json_filename), unsafe_allow_html=True)
                         else:
                             st.json(report)
                             
                             # Кнопка для скачивания в формате JSON
-                            json_filename = f"report_{datetime.now().strftime('%Y%m%d_%H%M%S')}.json"
+                            json_filename = f"bericht_{datetime.now().strftime('%Y%m%d_%H%M%S')}.json"
                             st.markdown(create_download_button(json.dumps(report, ensure_ascii=False, indent=2), 
-                                                              "Скачать как JSON", json_filename), unsafe_allow_html=True)
+                                                              "Als JSON herunterladen", json_filename), unsafe_allow_html=True)
                         
                         # Сохраняем отчет в состоянии
                         st.session_state.generated_report = report
