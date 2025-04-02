@@ -194,6 +194,7 @@ class ReportAnalyzer:
         current_file_dir = Path(os.path.dirname(os.path.abspath(__file__)))
         # Определяем путь к директории prompts относительно расположения файла
         self.prompts_dir = current_file_dir.parent.parent / "prompts"
+        self.logger.info(f"Директория с файлом: {current_file_dir}")
         self.logger.info(f"Директория с промптами: {self.prompts_dir}")
         
         # Кэш для загруженных шаблонов
@@ -212,7 +213,7 @@ class ReportAnalyzer:
         language = "de"
         lang_dir = self.prompts_dir / language
         
-        self.logger.info(f"Загрузка шаблонов из директории: {lang_dir}")
+        self.logger.info(f"Загрузка шаблонов из директории: {self.prompts_dir}")
         
         if not lang_dir.exists() or not lang_dir.is_dir():
             self.logger.warning(f"Директория с промптами для немецкого языка не найдена: {lang_dir}")
