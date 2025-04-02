@@ -190,7 +190,11 @@ class ReportAnalyzer:
             self.airtable_client = None
         
         # Директория с промптами
-        self.prompts_dir = Path("prompts")
+        # Находим абсолютный путь к директории, в которой находится файл report_generator.py
+        current_file_dir = Path(os.path.dirname(os.path.abspath(__file__)))
+        # Определяем путь к директории prompts относительно расположения файла
+        self.prompts_dir = current_file_dir.parent.parent / "prompts"
+        self.logger.info(f"Директория с промптами: {self.prompts_dir}")
         
         # Кэш для загруженных шаблонов
         self.prompt_cache = {}
@@ -208,6 +212,8 @@ class ReportAnalyzer:
         language = "de"
         lang_dir = self.prompts_dir / language
         
+        self.logger.info(f"Загрузка шаблонов из директории: {lang_dir}")
+        
         if not lang_dir.exists() or not lang_dir.is_dir():
             self.logger.warning(f"Директория с промптами для немецкого языка не найдена: {lang_dir}")
             return
@@ -222,15 +228,19 @@ class ReportAnalyzer:
             # Ищем файл template.md в директории категории
             template_path = category_dir / "template.md"
             
+            self.logger.info(f"Проверяем наличие шаблона: {template_path}")
+            
             if template_path.exists() and template_path.is_file():
                 try:
                     with open(template_path, "r", encoding="utf-8") as f:
                         template_content = f.read()
                         cache_key = category_name  # Убираем префикс языка, т.к. используем только немецкий
                         self.prompt_cache[cache_key] = template_content
-                        self.logger.debug(f"Предзагружен шаблон для категории {category_name}")
+                        self.logger.info(f"Предзагружен шаблон для категории {category_name}: {template_path}")
                 except Exception as e:
                     self.logger.error(f"Ошибка при загрузке шаблона {template_path}: {str(e)}")
+            else:
+                self.logger.warning(f"Файл шаблона не найден: {template_path}")
         
         # Записываем список доступных шаблонов в лог
         self.logger.info(f"Предзагружено {len(self.prompt_cache)} шаблонов промптов:")
@@ -265,6 +275,13 @@ class ReportAnalyzer:
         
         # Путь к шаблону категории
         template_path = self.prompts_dir / language / category_dir / "template.md"
+        
+        self.logger.info(f"Пытаемся загрузить шаблон: {template_path}")
+        
+        # Проверяем существование директории
+        template_dir = self.prompts_dir / language / category_dir
+        if not template_dir.exists() or not template_dir.is_dir():
+            self.logger.warning(f"Директория категории не найдена: {template_dir}")
         
         # Если файл существует, загружаем его
         if template_path.exists() and template_path.is_file():
