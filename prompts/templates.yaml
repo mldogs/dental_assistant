@@ -1,0 +1,452 @@
+# Шаблоны для генерации стоматологических отчетов
+# Каждый ключ - это категория процедуры, значение - шаблон для генерации отчета
+
+default: |
+  Aufgabe für den Zahnarzt-Experten
+
+  Sie müssen einen strukturierten medizinischen Bericht auf der Grundlage der Transkription der Rede des Arztes erstellen.
+
+  Transkription:
+  {{transcription}}
+
+  Verfahren: {{procedure_name}}
+  {{procedure_description}}
+
+  Ihre Aufgabe ist es, die Transkription sorgfältig zu analysieren und einen strukturierten Bericht über das zahnärztliche Verfahren zu erstellen. Verwenden Sie das internationale Zahnzahlungssystem (FDI).
+
+  Der Bericht sollte enthalten:
+  1. Überschrift (Name des Verfahrens)
+  2. Beschwerden des Patienten und Anamnese
+  3. Untersuchungsergebnisse
+  4. Verwendete Materialien
+  5. Beschreibung des Verfahrens
+  6. Behandlungsplan und Empfehlungen
+  7. Zusätzliche Informationen (falls vorhanden)
+  8. Nächster Besuch (falls angegeben)
+
+  Nehmen Sie alle klinisch relevanten Details aus der Transkription auf. Verwenden Sie professionelle medizinische Terminologie, aber bewahren Sie die Klarheit der Darstellung.
+
+fullungen: |
+  Aufgabe für den Zahnarzt-Experten
+
+  Sie müssen einen strukturierten medizinischen Bericht auf der Grundlage der Transkription der Rede des Arztes erstellen.
+
+  Transkription:
+  {{transcription}}
+
+  Verfahren: Füllungstherapie
+  {{procedure_description}}
+
+  Ihre Aufgabe ist es, die Transkription sorgfältig zu analysieren und einen strukturierten Bericht über das zahnärztliche Verfahren zu erstellen. Verwenden Sie das internationale Zahnzahlungssystem (FDI).
+
+  Der Bericht sollte enthalten:
+  1. Überschrift (Art der Füllung)
+  2. Beschwerden des Patienten und Anamnese
+  3. Untersuchungsergebnisse (mit Angabe der behandelten Zähne)
+  4. Verwendete Materialien (Komposit, Amalgam, GIZ usw.)
+  5. Beschreibung des Füllungsverfahrens:
+     - Präparation der Kavität
+     - Verwendete Adhäsivsysteme
+     - Schichttechnik
+     - Polymerisation
+     - Okklusionskontrolle und Anpassung
+  6. Behandlungsplan und Empfehlungen
+  7. Nächster Besuch (falls angegeben)
+
+  Nehmen Sie alle klinisch relevanten Details aus der Transkription auf. Verwenden Sie professionelle medizinische Terminologie, aber bewahren Sie die Klarheit der Darstellung.
+
+endo: |
+  Aufgabe für den Zahnarzt-Experten
+
+  Sie müssen einen strukturierten medizinischen Bericht auf der Grundlage der Transkription der Rede des Arztes erstellen.
+
+  Transkription:
+  {{transcription}}
+
+  Verfahren: Endodontische Behandlung
+  {{procedure_description}}
+
+  Ihre Aufgabe ist es, die Transkription sorgfältig zu analysieren und einen strukturierten Bericht über das zahnärztliche Verfahren zu erstellen. Verwenden Sie das internationale Zahnzahlungssystem (FDI).
+
+  Der Bericht sollte enthalten:
+  1. Überschrift (Wurzelkanalbehandlung)
+  2. Beschwerden des Patienten und Anamnese
+  3. Untersuchungsergebnisse (mit Angabe der behandelten Zähne)
+  4. Verwendete Materialien und Medikamente:
+     - Spüllösungen (NaOCl, EDTA, CHX)
+     - Medikamentöse Einlage
+     - Wurzelfüllmaterial
+  5. Beschreibung des Verfahrens:
+     - Anzahl der identifizierten Kanäle
+     - Arbeitslänge für jeden Kanal
+     - Aufbereitungstechnik und verwendete Instrumente
+     - Spülprotokoll
+     - Wurzelfülltechnik
+  6. Behandlungsplan und Empfehlungen
+  7. Nächster Besuch (falls angegeben)
+
+  Nehmen Sie alle klinisch relevanten Details aus der Transkription auf. Verwenden Sie professionelle medizinische Terminologie, aber bewahren Sie die Klarheit der Darstellung.
+
+chirurgie: |
+  Aufgabe für den Zahnarzt-Experten
+
+  Sie müssen einen strukturierten medizinischen Bericht auf der Grundlage der Transkription der Rede des Arztes erstellen.
+
+  Transkription:
+  {{transcription}}
+
+  Verfahren: Oralchirurgischer Eingriff
+  {{procedure_description}}
+
+  Ihre Aufgabe ist es, die Transkription sorgfältig zu analysieren und einen strukturierten Bericht über das zahnärztliche Verfahren zu erstellen. Verwenden Sie das internationale Zahnzahlungssystem (FDI).
+
+  Der Bericht sollte enthalten:
+  1. Überschrift (Art des chirurgischen Eingriffs)
+  2. Anamnese und Vorgeschichte
+  3. Diagnose und Indikation für den Eingriff
+  4. Vorbereitungen (Anästhesie, Desinfektion)
+  5. Beschreibung des chirurgischen Verfahrens:
+     - Inzision und Lappenbildung
+     - Entfernung von Gewebe/Zahn/Knochen
+     - Wundversorgung und Naht
+  6. Postoperative Anweisungen
+  7. Verordnete Medikation
+  8. Nächster Besuch (Nahtentfernung, Kontrolle)
+
+  Nehmen Sie alle klinisch relevanten Details aus der Transkription auf. Verwenden Sie professionelle medizinische Terminologie, aber bewahren Sie die Klarheit der Darstellung.
+
+implantation: |
+  Aufgabe für den Zahnarzt-Experten
+
+  Sie müssen einen strukturierten medizinischen Bericht auf der Grundlage der Transkription der Rede des Arztes erstellen.
+
+  Transkription:
+  {{transcription}}
+
+  Verfahren: Implantation
+  {{procedure_description}}
+
+  Ihre Aufgabe ist es, die Transkription sorgfältig zu analysieren und einen strukturierten Bericht über das zahnärztliche Verfahren zu erstellen. Verwenden Sie das internationale Zahnzahlungssystem (FDI).
+
+  Der Bericht sollte enthalten:
+  1. Überschrift (Implantation)
+  2. Anamnese und Vorgeschichte
+  3. Planungsdaten:
+     - Bildgebende Diagnostik (DVT, OPG)
+     - Knochenqualität und -quantität
+     - Geplante Implantatposition
+  4. Beschreibung des Implantationsprozesses:
+     - Verwendetes Implantatsystem und -größe
+     - Anästhesie
+     - Schnittführung
+     - Implantatbettaufbereitung
+     - Implantatinsertion (Primärstabilität)
+     - Knochenaugmentation (falls durchgeführt)
+     - Wundverschluss
+  5. Postoperative Anweisungen
+  6. Heilungsphase und geplante Freilegung
+  7. Nächster Besuch
+
+  Nehmen Sie alle klinisch relevanten Details aus der Transkription auf. Verwenden Sie professionelle medizinische Terminologie, aber bewahren Sie die Klarheit der Darstellung.
+
+transcription: |
+  Das ist eine Aufnahme eines Gesprächs in einer Zahnarztpraxis. Die Aufnahme kann zahnärztliche Verfahren, Diagnosen, Anamnesen und zahnmedizinische Terminologie enthalten. Bitte transkribieren Sie den Inhalt so genau wie möglich, mit besonderem Fokus auf:
+
+  1. Zahnmedizinische Fachbegriffe und Verfahren
+  2. Zahnnummern nach dem internationalen Zahnschema (FDI)
+  3. Namen von Materialien und Medikamenten
+  4. Diagnosen und Behandlungspläne
+  5. Anweisungen an den Patienten
+
+  Behalten Sie alle klinisch relevanten Informationen bei und geben Sie die Transkription in der Originalsprache (Deutsch) wieder. 
+
+# Добавляем недостающие шаблоны
+
+aufklarung: |
+  Aufgabe für den Zahnarzt-Experten
+
+  Sie müssen einen strukturierten medizinischen Bericht auf der Grundlage der Transkription der Rede des Arztes erstellen.
+
+  Transkription:
+  {{transcription}}
+
+  Verfahren: Aufklärungsgespräch
+  {{procedure_description}}
+
+  Ihre Aufgabe ist es, die Transkription sorgfältig zu analysieren und einen strukturierten Bericht über das zahnärztliche Beratungsgespräch zu erstellen. Verwenden Sie das internationale Zahnzahlungssystem (FDI).
+
+  Der Bericht sollte enthalten:
+  1. Überschrift (Aufklärungsgespräch / Befundaufnahme)
+  2. Patienteninformationen und Anamnese
+  3. Aktuelle Beschwerden und Befunde
+  4. Diagnose
+  5. Vorgeschlagene Behandlungsoptionen:
+     - Beschreibung jeder Option
+     - Vor- und Nachteile
+     - Kostenabschätzung
+  6. Risiken und mögliche Komplikationen
+  7. Patientenfragen und Antworten
+  8. Behandlungsentscheidung und nächste Schritte
+  9. Einwilligung des Patienten (falls gegeben)
+
+  Nehmen Sie alle klinisch relevanten Details aus der Transkription auf. Verwenden Sie professionelle medizinische Terminologie, aber bewahren Sie die Klarheit der Darstellung.
+
+kinder: |
+  Aufgabe für den Zahnarzt-Experten
+
+  Sie müssen einen strukturierten medizinischen Bericht auf der Grundlage der Transkription der Rede des Arztes erstellen.
+
+  Transkription:
+  {{transcription}}
+
+  Verfahren: Kinderzahnheilkunde
+  {{procedure_description}}
+
+  Ihre Aufgabe ist es, die Transkription sorgfältig zu analysieren und einen strukturierten Bericht über das zahnärztliche Verfahren bei einem Kind zu erstellen. Verwenden Sie das internationale Zahnzahlungssystem (FDI) und beachten Sie auch die Milchzahnnotation.
+
+  Der Bericht sollte enthalten:
+  1. Überschrift (Art der Kinderbehandlung)
+  2. Alter des Kindes
+  3. Kooperationsverhalten und Anamnese
+  4. Zahnstatus und aktuelle Befunde:
+     - Karies/Defekte (mit Zahnnummern)
+     - Entwicklungsstand des Gebisses
+     - Mundhygienestatus
+  5. Durchgeführte Behandlung:
+     - Angewandte verhaltensführende Techniken
+     - Verwendete Materialien (kindgerecht)
+     - Spezielle Techniken (Tell-Show-Do, etc.)
+  6. Prophylaxemaßnahmen:
+     - Fluoridierung
+     - Fissurenversiegelung
+     - Mundhygieneinstruktionen
+  7. Empfehlungen für Eltern/Betreuer
+  8. Nächster Besuch und Recall-Intervall
+
+  Nehmen Sie alle klinisch relevanten Details aus der Transkription auf. Verwenden Sie professionelle medizinische Terminologie, aber bewahren Sie die Klarheit der Darstellung.
+
+pa_pzr: |
+  Aufgabe für den Zahnarzt-Experten
+
+  Sie müssen einen strukturierten medizinischen Bericht auf der Grundlage der Transkription der Rede des Arztes erstellen.
+
+  Transkription:
+  {{transcription}}
+
+  Verfahren: Parodontologische Behandlung / Professionelle Zahnreinigung
+  {{procedure_description}}
+
+  Ihre Aufgabe ist es, die Transkription sorgfältig zu analysieren und einen strukturierten Bericht über das zahnärztliche Verfahren zu erstellen. Verwenden Sie das internationale Zahnzahlungssystem (FDI).
+
+  Der Bericht sollte enthalten:
+  1. Überschrift (Art der Behandlung: PA oder PZR)
+  2. Anamnese und Risikofaktoren (Rauchen, Diabetes, etc.)
+  3. Parodontaler Befund:
+     - Sondierungstiefen
+     - Blutung auf Sondierung (BOP)
+     - Furkationsbeteiligung
+     - Zahnlockerungen
+     - Gingivale Rezessionen
+  4. Durchgeführte Behandlung:
+     - Instruktion und Motivation
+     - Biofilmentfernung (Scaling, Root Planing)
+     - Subgingivale Instrumentierung
+     - Verwendete Instrumente und Geräte
+  5. Empfehlungen zur häuslichen Mundhygiene:
+     - Hilfsmittel (Interdentalbürsten, Zahnseide)
+     - Spezielle Zahnpasten oder Mundspülungen
+  6. Recall-Intervall und weiterer Behandlungsplan
+  7. Prognose
+
+  Nehmen Sie alle klinisch relevanten Details aus der Transkription auf. Verwenden Sie professionelle medizinische Terminologie, aber bewahren Sie die Klarheit der Darstellung.
+
+schmerzbehandlung: |
+  Aufgabe für den Zahnarzt-Experten
+
+  Sie müssen einen strukturierten medizinischen Bericht auf der Grundlage der Transkription der Rede des Arztes erstellen.
+
+  Transkription:
+  {{transcription}}
+
+  Verfahren: Schmerzbehandlung
+  {{procedure_description}}
+
+  Ihre Aufgabe ist es, die Transkription sorgfältig zu analysieren und einen strukturierten Bericht über die zahnärztliche Schmerzbehandlung zu erstellen. Verwenden Sie das internationale Zahnzahlungssystem (FDI).
+
+  Der Bericht sollte enthalten:
+  1. Überschrift (Schmerzbehandlung)
+  2. Schmerzanamnese:
+     - Lokalisation
+     - Qualität (dumpf, scharf, pulsierend)
+     - Intensität
+     - Auslöser
+     - Dauer und Verlauf
+  3. Klinische Untersuchung:
+     - Inspektion
+     - Palpation
+     - Perkussionstest
+     - Sensibilitätstests (Kälte, Wärme, elektrisch)
+     - Röntgenbefund
+  4. Diagnose
+  5. Durchgeführte Notfallbehandlung:
+     - Anästhesie
+     - Trepanation (falls durchgeführt)
+     - Medikamentöse Einlage
+     - Provisorischer Verschluss
+     - Verschriebene Medikamente
+  6. Weiterführender Behandlungsplan
+  7. Prognose
+
+  Nehmen Sie alle klinisch relevanten Details aus der Transkription auf. Verwenden Sie professionelle medizinische Terminologie, aber bewahren Sie die Klarheit der Darstellung.
+
+ze: |
+  Aufgabe für den Zahnarzt-Experten
+
+  Sie müssen einen strukturierten medizinischen Bericht auf der Grundlage der Transkription der Rede des Arztes erstellen.
+
+  Transkription:
+  {{transcription}}
+
+  Verfahren: Zahnersatz / Prothetik
+  {{procedure_description}}
+
+  Ihre Aufgabe ist es, die Transkription sorgfältig zu analysieren und einen strukturierten Bericht über das zahnärztliche Verfahren zu erstellen. Verwenden Sie das internationale Zahnzahlungssystem (FDI).
+
+  Der Bericht sollte enthalten:
+  1. Überschrift (Art des Zahnersatzes)
+  2. Ausgangssituation und Anamnese
+  3. Klinische Untersuchung und Befunde
+  4. Art des geplanten/eingesetzten Zahnersatzes:
+     - Festsitzend (Krone, Brücke, Teilkrone)
+     - Herausnehmbarer Zahnersatz (Teilprothese, Totalprothese)
+     - Kombiniert festsitzend-herausnehmbarer Zahnersatz
+     - Implantatgetragener Zahnersatz
+  5. Materialien:
+     - Gerüstmaterial
+     - Verblendmaterial
+     - Befestigungsmaterial
+  6. Durchgeführte Arbeitsschritte:
+     - Präparation (bei festsitzendem Zahnersatz)
+     - Abformung und Bissregistrierung
+     - Anprobe
+     - Definitive Eingliederung
+  7. Funktionsanalyse und Ästhetikbeurteilung
+  8. Nachsorge und Pflegehinweise
+  9. Prognose und Haltbarkeitserwartung
+
+  Nehmen Sie alle klinisch relevanten Details aus der Transkription auf. Verwenden Sie professionelle medizinische Terminologie, aber bewahren Sie die Klarheit der Darstellung.
+
+opg_dvt: |
+  Aufgabe für den Zahnarzt-Experten
+
+  Sie müssen einen strukturierten medizinischen Bericht auf der Grundlage der Transkription der Rede des Arztes erstellen.
+
+  Transkription:
+  {{transcription}}
+
+  Verfahren: Röntgendiagnostik (OPG/DVT)
+  {{procedure_description}}
+
+  Ihre Aufgabe ist es, die Transkription sorgfältig zu analysieren und einen strukturierten Bericht über die Röntgendiagnostik zu erstellen. Verwenden Sie das internationale Zahnzahlungssystem (FDI).
+
+  Der Bericht sollte enthalten:
+  1. Überschrift (Art der Röntgenaufnahme: OPG, DVT, etc.)
+  2. Indikation für die Röntgenaufnahme
+  3. Technische Details der Aufnahme:
+     - Gerät und Einstellungen
+     - Bildqualität
+     - Bestrahlungsdosis (wenn erwähnt)
+  4. Befunde:
+     - Zahnstatus
+     - Knochenstrukturen
+     - Kiefergelenke
+     - Kieferhöhlen
+     - Pathologische Veränderungen
+     - Implantate oder andere Restaurationen
+  5. Interpretation und Diagnose
+  6. Empfehlungen für weitere Diagnostik oder Behandlung
+  7. Differentialdiagnosen (falls relevant)
+
+  Nehmen Sie alle klinisch relevanten Details aus der Transkription auf. Verwenden Sie professionelle medizinische Terminologie, aber bewahren Sie die Klarheit der Darstellung.
+
+cmd: |
+  Aufgabe für den Zahnarzt-Experten
+
+  Sie müssen einen strukturierten medizinischen Bericht auf der Grundlage der Transkription der Rede des Arztes erstellen.
+
+  Transkription:
+  {{transcription}}
+
+  Verfahren: CMD-Diagnostik und -Therapie
+  {{procedure_description}}
+
+  Ihre Aufgabe ist es, die Transkription sorgfältig zu analysieren und einen strukturierten Bericht über die CMD-Behandlung zu erstellen. Verwenden Sie das internationale Zahnzahlungssystem (FDI).
+
+  Der Bericht sollte enthalten:
+  1. Überschrift (CMD-Diagnostik/Therapie)
+  2. Anamnese:
+     - Hauptbeschwerden
+     - Schmerzen (Lokalisation, Intensität, Auslöser)
+     - Funktionseinschränkungen
+     - Begleiterscheinungen (Kopfschmerzen, Tinnitus, etc.)
+     - Psychosoziale Faktoren
+  3. Klinische Untersuchung:
+     - Kiefergelenksbefund (Geräusche, Schmerzen bei Palpation)
+     - Bewegungsanalyse (Mundöffnung, Laterotrusion, Protrusion)
+     - Muskulärer Befund
+     - Okklusionsbefund
+  4. Instrumentelle Funktionsanalyse (falls durchgeführt)
+  5. Bildgebende Diagnostik (MRT, CT, OPG)
+  6. Diagnose
+  7. Therapie:
+     - Okklusionsschiene
+     - Physiotherapie
+     - Medikamentöse Therapie
+     - Entspannungstechniken
+     - Weitere therapeutische Maßnahmen
+  8. Prognose und weiterer Behandlungsplan
+
+  Nehmen Sie alle klinisch relevanten Details aus der Transkription auf. Verwenden Sie professionelle medizinische Terminologie, aber bewahren Sie die Klarheit der Darstellung.
+
+kfo: |
+  Aufgabe für den Zahnarzt-Experten
+
+  Sie müssen einen strukturierten medizinischen Bericht auf der Grundlage der Transkription der Rede des Arztes erstellen.
+
+  Transkription:
+  {{transcription}}
+
+  Verfahren: Kieferorthopädische Behandlung
+  {{procedure_description}}
+
+  Ihre Aufgabe ist es, die Transkription sorgfältig zu analysieren und einen strukturierten Bericht über die kieferorthopädische Behandlung zu erstellen. Verwenden Sie das internationale Zahnzahlungssystem (FDI).
+
+  Der Bericht sollte enthalten:
+  1. Überschrift (Art der KFO-Behandlung)
+  2. Patienteninformationen:
+     - Alter
+     - Wachstumsphase
+     - Anamnese
+  3. Diagnostik:
+     - Extraorale Befunde
+     - Intraorale Befunde
+     - Funktionsbefunde
+     - Modellanalyse
+     - Röntgenologische Befunde (FRS, OPG)
+  4. Diagnose:
+     - Angle-Klasse
+     - Skelettale Klassifikation
+     - Spezifische Anomalien
+  5. Behandlungsplan:
+     - Behandlungsziele
+     - Apparatur (fest/herausnehmbar)
+     - Voraussichtliche Behandlungsdauer
+     - Extraktionen (falls notwendig)
+  6. Durchgeführte Maßnahmen:
+     - Eingesetzte Apparatur
+     - Aktivierungen
+     - Anpassungen
+  7. Patientencompliance und Mundhygienestatus
+  8. Nächster Termin und geplante Maßnahmen
+
+  Nehmen Sie alle klinisch relevanten Details aus der Transkription auf. Verwenden Sie professionelle medizinische Terminologie, aber bewahren Sie die Klarheit der Darstellung. 

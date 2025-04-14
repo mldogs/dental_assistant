@@ -6,10 +6,12 @@ import base64
 import hmac
 import openai
 import tempfile
+import yaml
 from datetime import datetime
 import pandas as pd
 from pyairtable import Api
 from pyairtable.formulas import match
+from pyairtable.api.table import Table
 from report_generator import generate_dental_report
 
 # Настройка страницы
@@ -166,61 +168,71 @@ except Exception:
 # Инициализация Airtable API
 airtable = Api(AIRTABLE_API_KEY)
 
-
-# Функция для транскрипции аудио через OpenAI API
-def transcribe_audio_with_openai(audio_data):
-    """
-    Транскрибирует аудио данные используя OpenAI Whisper API
-    
-    Args:
-        audio_data: бинарные данные аудио файла
-        
-    Returns:
-        Текст транскрипции или сообщение об ошибке
-    """
-    # Проверяем наличие API ключа и клиента
-    if not OPENAI_API_KEY:
-        return "Ошибка: OpenAI API ключ не найден. Проверьте настройки secrets."
-    
-    if not openai_client:
-        return "Ошибка: OpenAI клиент не инициализирован."
-
-    asr_prompt = """
-    You are an expert dental transcriptionist. Your task is to transcribe audio from a dental office accurately and precisely. 
-
-    The audio recording likely contains:
-    - A conversation between a dentist and a patient or between dental professionals
-    - Dental terminology and procedures
-    - Documentation of dental procedures, diagnoses, or treatment plans
-    - Possibly numbers referring to specific teeth using the FDI World Dental Federation notation system
-    - Mentions of dental materials, instruments, or medications
-
-    Please transcribe the audio accurately, preserving all dental terminology, teeth numbers, and specific procedural details. Pay particular attention to:
-    1. Dental diagnoses and conditions
-    2. Names of specific procedures being performed
-    3. Materials being used
-    4. Tooth numbers and locations
-    5. Patient symptoms or complaints
-    6. Treatment recommendations
-
-    If the speech is in German, keep dental terms in their precise German medical form.
+# Функция для получения промпта для транскрипции из Airtable
+def get_transcription_prompt():
+    """Retrieves the transcription prompt from Airtable or templates.yaml file, or returns a default prompt."""
+    # Default prompt in case retrieval fails
+    default_prompt = """
+    Das ist eine Aufnahme eines Gesprächs in einer Zahnarztpraxis. Die Aufnahme kann zahnärztliche Verfahren, Diagnosen, Anamnesen und zahnmedizinische Terminologie enthalten. Bitte transkribieren Sie den Inhalt so genau wie möglich, mit besonderem Fokus auf zahnmedizinische Fachbegriffe und Verfahren, Zahnnummern, Materialien, Diagnosen und Anweisungen an den Patienten.
     """
     
     try:
-        transcription = openai_client.audio.transcriptions.create(
-            model="gpt-4o-transcribe", 
-            file=audio_data, 
-            response_format="text",
-            prompt=asr_prompt
-        )
-        print(transcription)
+        # Try to get the template from templates.yaml first
+        templates_file = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), 
+                                     "prompts", "templates.yaml")
         
-        # Возвращаем текст транскрипции
-        return transcription
-    
+        # Check if file exists
+        if os.path.exists(templates_file):
+            with open(templates_file, 'r', encoding='utf-8') as file:
+                templates = yaml.safe_load(file)
+                if templates and 'transcription' in templates:
+                    print(f"Loaded transcription prompt from templates.yaml")
+                    return templates['transcription']
+        
+        # If template not found in yaml file, try Airtable
+        if AIRTABLE_API_KEY and AIRTABLE_BASE_ID:
+            try:
+                table = Table(AIRTABLE_API_KEY, AIRTABLE_BASE_ID, "Prompts")
+                records = table.all(formula="FIND('transcription', LOWER({category}))>0")
+                
+                if records and len(records) > 0 and 'fields' in records[0] and 'template_content' in records[0]['fields']:
+                    prompt = records[0]['fields']['template_content']
+                    print(f"Loaded transcription prompt from Airtable")
+                    return prompt
+            except Exception as e:
+                print(f"Error fetching transcription prompt from Airtable: {e}")
     except Exception as e:
-        # Возвращаем сообщение об ошибке
-        return f"Ошибка при транскрибации: {str(e)}"
+        print(f"Error loading transcription prompt: {e}")
+    
+    print(f"Using default transcription prompt")
+    return default_prompt
+
+# Функция для транскрипции аудио через OpenAI API
+def transcribe_audio_with_openai(audio_bytes):
+    """Transcribe audio using OpenAI's Whisper model with a prompt for dental context."""
+    try:
+        transcription_prompt = get_transcription_prompt()
+        print(f"Transcription prompt length: {len(transcription_prompt)}")
+        
+        # Call the OpenAI API with the prompt
+        transcription = openai_client.audio.transcriptions.create(
+            file=("audio.mp3", audio_bytes),
+            model="whisper-1",
+            prompt=transcription_prompt,
+            language="de"
+        )
+        
+        result = transcription.text
+        print(f"Transcription length: {len(result)}")
+        if len(result) > 100:
+            print(f"Transcription beginning: {result[:100]}...")
+        else:
+            print(f"Transcription: {result}")
+        
+        return result
+    except Exception as e:
+        print(f"Error during transcription: {e}")
+        return ""
 
 # Функции для работы с Airtable
 def get_doctors():
@@ -506,12 +518,6 @@ def save_transcription(session_id, procedure_id, text):
             if procedure_records:
                 procedure_record_id = procedure_records[0]["id"]
         
-        # Анализ текста для выделения ключевых слов и номеров зубов
-        keywords = extract_keywords(text)
-        print(f"Найдены ключевые слова: {keywords}")
-        teeth_mentioned = extract_teeth_numbers(text)
-        print(f"Найдены номера зубов: {teeth_mentioned}")
-        
         # Генерация ID для транскрипции
         transcription_id = f"T{datetime.now().strftime('%Y%m%d%H%M%S')}"
         
@@ -520,8 +526,6 @@ def save_transcription(session_id, procedure_id, text):
             "transcriptionId": transcription_id,
             "sessionId": [session_record_id],  # Массив с ID записи сессии
             "text": text,
-            "keywords": keywords,
-            "teethMentioned": teeth_mentioned,
             "createdAt": datetime.now().strftime("%Y-%m-%d")
         }
         
@@ -544,34 +548,6 @@ def save_transcription(session_id, procedure_id, text):
             "success": False,
             "message": f"Ошибка при сохранении транскрипции: {str(e)}"
         }
-
-def extract_keywords(text):
-    """Извлекает ключевые слова из текста"""
-    # Простая реализация - ищем медицинские термины
-    keywords = []
-    medical_terms = [
-        "кариес", "пломба", "чистка", "боль", "анестезия", "имплант", 
-        "коронка", "мост", "брекеты", "пародонтит", "пульпит", "канал"
-    ]
-    
-    for term in medical_terms:
-        if term.lower() in text.lower():
-            keywords.append(term)
-    if len(keywords) == 0:
-        keywords.append("нет ключевых слов")
-    
-    return ', '.join(keywords)
-
-def extract_teeth_numbers(text):
-    """Извлекает номера зубов из текста"""
-    import re
-    
-    # Ищем номера зубов (формат: число от 11 до 48)
-    pattern = r'\b([1-4][1-8])\b'
-    teeth = re.findall(pattern, text)
-    if len(teeth) == 0:
-        teeth.append("нет номеров зубов")
-    return ', '.join(teeth)
 
 # Функция для экспорта отчета в PDF
 def create_download_button(text, button_text, file_name):
@@ -1090,12 +1066,12 @@ elif st.session_state.step == 'show_transcription':
                         # Генерация отчета только на немецком языке
                         report = generate_dental_report(
                             transcription=transcription,
-                            language='de',  # Всегда используем немецкий язык
                             procedure_id=procedure_info['id'],
                             category=procedure_info['category'],
-                            procedure=procedure_info['name'],
+                            procedure_name=procedure_info['name'],
                             procedure_info=procedure_info
                         )
+                        print(report)
                         
                         # Отображение результата
                         if output_format == 'markdown':
