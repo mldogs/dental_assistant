@@ -16,7 +16,8 @@ from pyairtable.formulas import match
 from pyairtable.api.table import Table
 from report_generator import generate_dental_report
 
-from pydub import AudioSegment
+# from pydub import AudioSegment
+import wave
 # AudioSegment.converter = "/usr/bin/ffmpeg"
 
 
@@ -220,20 +221,48 @@ def get_transcription_prompt():
     return default_prompt
 
 
-def split_audio_into_chunks(audio_bytes, chunk_duration_ms=90000):
-    """
-    Разбивает аудиоданные на чанки заданной длительности.
+# def split_audio_into_chunks(audio_bytes, chunk_duration_ms=90000):
+#     """
+#     Разбивает аудиоданные на чанки заданной длительности.
 
-    :param audio_bytes: Аудиоданные в байтах.
-    :param chunk_duration_ms: Длительность каждого чанка в миллисекундах.
-    :return: Список аудиочанков.
+#     :param audio_bytes: Аудиоданные в байтах.
+#     :param chunk_duration_ms: Длительность каждого чанка в миллисекундах.
+#     :return: Список аудиочанков.
+#     """
+#     # Загружаем аудио из байтов
+#     audio = AudioSegment.from_file(BytesIO(audio_bytes), format="wav")
+    
+#     # Разбиваем на чанки
+#     chunks = [audio[i:i + chunk_duration_ms] for i in range(0, len(audio), chunk_duration_ms)]
+    
+#     return chunks
+
+def split_audio_into_chunks(uploaded_file, chunk_duration_sec=90):
     """
-    # Загружаем аудио из байтов
-    audio = AudioSegment.from_file(BytesIO(audio_bytes), format="wav")
-    
-    # Разбиваем на чанки
-    chunks = [audio[i:i + chunk_duration_ms] for i in range(0, len(audio), chunk_duration_ms)]
-    
+    Разбивает Streamlit UploadedFile (audio/wav) на чанки по chunk_duration_sec секунд.
+    Возвращает список байтовых объектов (каждый — валидный WAV-файл).
+    """
+    # uploaded_file — это уже file-like объект, можно читать напрямую
+    uploaded_file.seek(0)
+    with wave.open(uploaded_file, 'rb') as wf:
+        params = wf.getparams()
+        framerate = wf.getframerate()
+        sampwidth = wf.getsampwidth()
+        nchannels = wf.getnchannels()
+        total_frames = wf.getnframes()
+        chunk_frames = int(chunk_duration_sec * framerate)
+        chunks = []
+        for start in range(0, total_frames, chunk_frames):
+            wf.setpos(start)
+            frames = wf.readframes(min(chunk_frames, total_frames - start))
+            out_buf = BytesIO()
+            with wave.open(out_buf, 'wb') as out_wf:
+                out_wf.setnchannels(nchannels)
+                out_wf.setsampwidth(sampwidth)
+                out_wf.setframerate(framerate)
+                out_wf.writeframes(frames)
+            out_buf.seek(0)
+            chunks.append(out_buf.read())
     return chunks
 
 def transcribe_audio_with_openai(audio_file):
