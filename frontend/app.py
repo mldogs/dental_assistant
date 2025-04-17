@@ -20,6 +20,11 @@ from pydub import AudioSegment
 AudioSegment.converter = "/usr/bin/ffmpeg"
 
 
+print("FFMPEG_BINARY:", os.environ.get("FFMPEG_BINARY"))
+from pydub import AudioSegment
+print("AudioSegment.converter:", AudioSegment.converter)
+
+
 
 # Настройка страницы
 st.set_page_config(

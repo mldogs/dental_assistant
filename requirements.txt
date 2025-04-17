@@ -14,3 +14,4 @@ streamlit-authenticator>=0.2.3
 pyyaml>=6.0.1
 bcrypt>=4.0.1
 extra-streamlit-components>=0.1.60
+ffmpeg==4.3.1
