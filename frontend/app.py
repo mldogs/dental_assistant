@@ -242,9 +242,13 @@ def split_audio_into_chunks(uploaded_file, chunk_duration_sec=90):
     Разбивает Streamlit UploadedFile (audio/wav) на чанки по chunk_duration_sec секунд.
     Возвращает список байтовых объектов (каждый — валидный WAV-файл).
     """
-    # uploaded_file — это уже file-like объект, можно читать напрямую
-    uploaded_file.seek(0)
-    with wave.open(uploaded_file, 'rb') as wf:
+    # Универсально: если это bytes — обернуть в BytesIO, если file-like — использовать напрямую
+    if hasattr(uploaded_file, "seek"):
+        uploaded_file.seek(0)
+        wav_source = uploaded_file
+    else:
+        wav_source = BytesIO(uploaded_file)
+    with wave.open(wav_source, 'rb') as wf:
         params = wf.getparams()
         framerate = wf.getframerate()
         sampwidth = wf.getsampwidth()
