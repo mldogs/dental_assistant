@@ -17,12 +17,12 @@ from pyairtable.api.table import Table
 from report_generator import generate_dental_report
 
 from pydub import AudioSegment
-AudioSegment.converter = "/usr/bin/ffmpeg"
+# AudioSegment.converter = "/usr/bin/ffmpeg"
 
 
-print("FFMPEG_BINARY:", os.environ.get("FFMPEG_BINARY"))
-from pydub import AudioSegment
-print("AudioSegment.converter:", AudioSegment.converter)
+# print("FFMPEG_BINARY:", os.environ.get("FFMPEG_BINARY"))
+# from pydub import AudioSegment
+# print("AudioSegment.converter:", AudioSegment.converter)
 
 
 
