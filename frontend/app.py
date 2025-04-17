@@ -291,9 +291,9 @@ def transcribe_audio_with_openai(audio_file):
             print(f"Transcribing chunk {i+1}/{len(chunks)}")
             
             # Экспортируем чанк в байты
-            chunk_io = BytesIO()
-            chunk.export(chunk_io, format="mp3")  # Используем формат MP3 для уменьшения размера
-            chunk_data = chunk_io.getvalue()
+            # chunk_io = BytesIO()
+            # chunk.export(chunk_io, format="mp3")  # Используем формат MP3 для уменьшения размера
+            # chunk_data = chunk_io.getvalue()
             
             # Формируем промпт с учетом предыдущего контекста
             current_prompt = """
@@ -307,7 +307,8 @@ def transcribe_audio_with_openai(audio_file):
             # Транскрибируем чанк
             transcription = openai_client.audio.transcriptions.create(
                 model="gpt-4o-transcribe",
-                file=("audio.mp3", chunk_data),
+                # file=("audio.mp3", chunk),
+                file=("audio.wav", BytesIO(chunk)),
                 prompt=current_prompt,
                 language="de"
             )
