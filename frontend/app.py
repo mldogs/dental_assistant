@@ -1,6 +1,8 @@
 import streamlit as st
 import requests
 import json
+import math
+from io import BytesIO
 import os
 import base64
 import hmac
@@ -13,6 +15,10 @@ from pyairtable import Api
 from pyairtable.formulas import match
 from pyairtable.api.table import Table
 from report_generator import generate_dental_report
+
+from pydub import AudioSegment
+
+
 
 # Настройка страницы
 st.set_page_config(
@@ -207,22 +213,70 @@ def get_transcription_prompt():
     print(f"Using default transcription prompt")
     return default_prompt
 
-# Функция для транскрипции аудио через OpenAI API
-def transcribe_audio_with_openai(audio_bytes):
-    """Transcribe audio using OpenAI's Whisper model with a prompt for dental context."""
+
+def split_audio_into_chunks(audio_bytes, chunk_duration_ms=90000):
+    """
+    Разбивает аудиоданные на чанки заданной длительности.
+
+    :param audio_bytes: Аудиоданные в байтах.
+    :param chunk_duration_ms: Длительность каждого чанка в миллисекундах.
+    :return: Список аудиочанков.
+    """
+    # Загружаем аудио из байтов
+    audio = AudioSegment.from_file(BytesIO(audio_bytes), format="wav")
+    
+    # Разбиваем на чанки
+    chunks = [audio[i:i + chunk_duration_ms] for i in range(0, len(audio), chunk_duration_ms)]
+    
+    return chunks
+
+def transcribe_audio_with_openai(audio_file):
+    """
+    Транскрибирует аудио с использованием модели Whisper от OpenAI.
+
+    :param audio_bytes: Аудиоданные в байтах.
+    :return: Текст транскрипции.
+    """
     try:
-        transcription_prompt = get_transcription_prompt()
-        print(f"Transcription prompt length: {len(transcription_prompt)}")
+        # Разбиваем аудио на чанки
+        # Преобразуем UploadedFile в байты, если нужно
+        if hasattr(audio_file, 'read'):
+            audio_bytes = audio_file.read()
+        else:
+            audio_bytes = audio_file
+            
+        chunks = split_audio_into_chunks(audio_bytes)
         
-        # Call the OpenAI API with the prompt
-        transcription = openai_client.audio.transcriptions.create(
-            file=("audio.mp3", audio_bytes),
-            model="whisper-1",
-            prompt=transcription_prompt,
-            language="de"
-        )
+        all_transcriptions = []
+        for i, chunk in enumerate(chunks):
+            print(f"Transcribing chunk {i+1}/{len(chunks)}")
+            
+            # Экспортируем чанк в байты
+            chunk_io = BytesIO()
+            chunk.export(chunk_io, format="mp3")  # Используем формат MP3 для уменьшения размера
+            chunk_data = chunk_io.getvalue()
+            
+            # Формируем промпт с учетом предыдущего контекста
+            current_prompt = """
+        Das ist eine Aufnahme eines Gesprächs in einer Zahnarztpraxis. Die Aufnahme kann zahnärztliche Verfahren, Diagnosen, Anamnesen und zahnmedizinische Terminologie    enthalten. Bitte transkribieren Sie den Inhalt so genau wie möglich, mit besonderem Fokus auf zahnmedizinische Fachbegriffe und Verfahren, Zahnnummern, Materialien, Diagnosen und Anweisungen an den Patienten.
+             """
+            if i > 0 and all_transcriptions:
+                # Добавляем последние 100 символов предыдущей транскрипции как контекст
+                last_text = '[chunk]'.join(all_transcriptions)
+                current_prompt += f"\n\nVorheriger Kontext: {last_text}"
+            
+            # Транскрибируем чанк
+            transcription = openai_client.audio.transcriptions.create(
+                model="gpt-4o-transcribe",
+                file=("audio.mp3", chunk_data),
+                prompt=current_prompt,
+                language="de"
+            )
+            all_transcriptions.append(transcription.text)
         
-        result = transcription.text
+        # Объединяем все транскрипции
+        result = " ".join(all_transcriptions)
+        
         print(f"Transcription length: {len(result)}")
         if len(result) > 100:
             print(f"Transcription beginning: {result[:100]}...")
@@ -231,8 +285,16 @@ def transcribe_audio_with_openai(audio_bytes):
         
         return result
     except Exception as e:
+        import traceback
         print(f"Error during transcription: {e}")
-        return ""
+        print(traceback.format_exc())  # Выводим полный стек ошибки для отладки
+        return f"Fehler bei der Transkription: {str(e)}"
+
+# Пример использования
+# audio_bytes = ... # Ваши аудиоданные в байтах
+
+# Результат транскрипции
+# transcription_result = transcribe_audio_with_openai(audio_bytes)
 
 # Функции для работы с Airtable
 def get_doctors():
