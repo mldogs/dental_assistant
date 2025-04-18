@@ -9,23 +9,133 @@ import hmac
 import openai
 import tempfile
 import yaml
+import sys
 from datetime import datetime
 import pandas as pd
 from pyairtable import Api
 from pyairtable.formulas import match
 from pyairtable.api.table import Table
-from report_generator import generate_dental_report
+
+# Добавляем корневой каталог проекта в sys.path
+sys.path.append(os.path.abspath(os.path.dirname(os.path.dirname(__file__))))
+from frontend.models.process_report import process_dental_transcription_universal, REPORT_MAPPING
 
 # from pydub import AudioSegment
 import wave
 # AudioSegment.converter = "/usr/bin/ffmpeg"
 
+# Словарь для маппинга категорий на типы отчетов
+CATEGORY_KEY_MAP = {
+    # Точные названия категорий из Airtable
+    "Aufklärung": "befundaufnahme",  
+    "Befundaufnahme": "befundaufnahme",
+    "Endo": "endo",
+    "Füllungen": "fullungen",
+    "Implantation": "implantation",
+    "Kinder": "kinder",
+    "PA": "pa_pzr",
+    "PZR": "pa_pzr",
+    "Smerzbehandlung": "schmerzbehandlung",
+    "Schmerzbehandlung": "schmerzbehandlung",
+    "ZE": "ze",
+    "OPG-DVT": "opg_dvt",
+    "CMD": "cmd",
+    "KFO": "kfo",
+    "Chirurgie": "chirurgie",
+    
+    # Немецкие дополнительные синонимы
+    "Endodontie": "endo",
+    "Zahnfüllungen": "fullungen",
+    "Implantologie": "implantation",
+    "Kinderzahnheilkunde": "kinder",
+    "Parodontologie": "pa_pzr",
+    "Professionelle Zahnreinigung": "pa_pzr",
+    "Zahnprothetik": "ze",
+    "Prothetik": "ze",
+    "Röntgendiagnostik": "opg_dvt",
+    "Kieferorthopädie": "kfo",
+    "Chirurgische Eingriffe": "chirurgie",
+    
+    # Значение по умолчанию
+    "default": "endo"  # По умолчанию используем endo
+}
 
-# print("FFMPEG_BINARY:", os.environ.get("FFMPEG_BINARY"))
-# from pydub import AudioSegment
-# print("AudioSegment.converter:", AudioSegment.converter)
+api_key = st.secrets["openai_api_key"] or os.environ.get("OPENAI_API_KEY")
+client = openai.OpenAI(api_key=api_key)
 
+@st.cache_data(ttl=86400, show_spinner=True, max_entries=100)
+def generate_dental_report(
+    transcription: str,
+    category: str = None,
+    procedure_name: str = None,
+    procedure_info: dict = None,
+    doctor_name: str = "Dr. Zahnarzt"
+) -> str:
+    """
+    Функция-обертка для генерации стоматологического отчета через process_dental_transcription_universal
+    
+    Args:
+        transcription: Текст транскрипции
+        category: Категория процедуры
+        procedure_name: Название процедуры
+        procedure_info: Дополнительная информация о процедуре
+        doctor_name: Имя врача (по умолчанию "Dr. Zahnarzt")
+        
+    Returns:
+        Отчет в текстовом формате
+    """
+      
+    # Получаем дополнительную информацию о процедуре
+    additional_info = procedure_info or {}
+    
+       
+    # Получаем тип отчета на основе категории
+    report_type = get_report_type_from_category(category)
+    
+    # Получаем название процедуры
+    proc_name = additional_info.get("name", procedure_name or "")
+    
+    # Получаем описание процедуры
+    proc_description = additional_info.get("description", "")
+    
+    print(f"Генерация отчета типа {report_type} для категории: {category}")
+    
+    try:
+        # Вызываем универсальную функцию
+        formatted_report, _ = process_dental_transcription_universal(
+            transcription=transcription,
+            procedure_name=proc_name,
+            doctor_name=doctor_name,
+            procedure_description=proc_description,
+            report_type=report_type,
+            model="gpt-4.1-2025-04-14",
+            client=client
+        )
+        
+        return formatted_report
+        
+    except Exception as e:
+        print(f"Ошибка при создании отчета: {str(e)}")
+        return f"Fehler bei der Berichtserstellung: {str(e)}"
 
+def get_report_type_from_category(category: str) -> str:
+    """
+    Определяет тип отчета на основе категории процедуры
+    
+    Args:
+        category: Категория процедуры
+        
+    Returns:
+        Тип отчета для использования в process_dental_transcription_universal
+    """
+    # Обрабатываем категории с символом "|"
+    if category and "|" in category:
+        parts = category.split("|")
+        category = parts[0].strip()
+        print(f"Категория '{category}' содержит символ '|', используем первую часть: '{category}'")
+    
+    # Получаем тип отчета для категории или значение по умолчанию
+    return CATEGORY_KEY_MAP.get(category, CATEGORY_KEY_MAP["default"])
 
 # Настройка страницы
 st.set_page_config(
@@ -221,21 +331,6 @@ def get_transcription_prompt():
     return default_prompt
 
 
-# def split_audio_into_chunks(audio_bytes, chunk_duration_ms=90000):
-#     """
-#     Разбивает аудиоданные на чанки заданной длительности.
-
-#     :param audio_bytes: Аудиоданные в байтах.
-#     :param chunk_duration_ms: Длительность каждого чанка в миллисекундах.
-#     :return: Список аудиочанков.
-#     """
-#     # Загружаем аудио из байтов
-#     audio = AudioSegment.from_file(BytesIO(audio_bytes), format="wav")
-    
-#     # Разбиваем на чанки
-#     chunks = [audio[i:i + chunk_duration_ms] for i in range(0, len(audio), chunk_duration_ms)]
-    
-#     return chunks
 
 def split_audio_into_chunks(uploaded_file, chunk_duration_sec=90):
     """
@@ -1168,10 +1263,10 @@ elif st.session_state.step == 'show_transcription':
                         # Генерация отчета только на немецком языке
                         report = generate_dental_report(
                             transcription=transcription,
-                            procedure_id=procedure_info['id'],
                             category=procedure_info['category'],
                             procedure_name=procedure_info['name'],
-                            procedure_info=procedure_info
+                            procedure_info=procedure_info,
+                            doctor_name=st.session_state.doctor_name
                         )
                         print(report)
                         
